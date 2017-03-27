@@ -8,54 +8,32 @@
  *
  */
 #include <stdlib.h>
-#include <unistd.h>
 #include <stdio.h>
 #include <getopt.h>
+#include <string.h>
+#include <ctype.h>
 
-/* Constants */
-#define NUM_ENTRIES 4
+#include "simulation.h"
 
 /* Struct to store the configuration options from the command line */
-struct options {
+typedef struct {
     char *filename;
     char *algorithm_name;
     int memsize;
     int quantum;
-};
-
-/* Struct to store the entries of a process */
-struct process {
-    int time_created;
-    int process_id;
-    int memory_size;
-    int job_time;
-};
-
-/* Type definitions */
-typedef struct options options_t;
-typedef struct process process_t;
+} options_t;
 
 /* Function declarations */
-static void usage_exit(char *exe);
 static options_t load_options(int argc, char *argv[]);
-process_t *load_processes(unsigned int *n);
+static void usage_exit(char *exe);
+char *string_lower(char *str);
+int string_digit(const char *str);
 
 /* The Main Function */
 int main(int argc, char *argv[]) {
     options_t opts = load_options(argc, argv);
-
-    unsigned int num_processes = 0;
-    process_t *list = load_processes(&num_processes);
+    simulate(opts.filename, opts.algorithm_name, opts.memsize, opts.quantum);
     return 0;
-}
-
-static void usage_exit(char *exe) {
-    fprintf(stderr, "Usage: %s (-f filename | -a algorithm_name | -m memsize | -q quantum) \n", exe);
-    fprintf(stderr, "-f     the name of the process size file\n");
-    fprintf(stderr, "-a     the placement algorithm, one of {first,best,worst}\n");
-    fprintf(stderr, "-m     the size of main memory\n");
-    fprintf(stderr, "-q     the length of the quantum\n");
-    exit(EXIT_FAILURE);
 }
 
 static options_t load_options(int argc, char *argv[]) {
@@ -72,9 +50,35 @@ static options_t load_options(int argc, char *argv[]) {
     while ((c = getopt(argc, argv, "f:a:m:q:")) != -1) {
         switch (c) {
         case 'f': opts.filename = optarg; break;
-        case 'a': opts.algorithm_name = optarg; break;
-        case 'm': opts.memsize = atoi(optarg); break;
-        case 'q': opts.quantum = atoi(optarg); break;
+        case 'a':
+            string_lower(optarg);
+            if (!strcmp(optarg, "first")) {
+                opts.algorithm_name = optarg;
+            } else if (!strcmp(optarg, "best")) {
+                opts.algorithm_name = optarg;
+            } else if (!strcmp(optarg, "worst")) {
+                opts.algorithm_name = optarg;
+            } else {
+                fprintf(stderr, "Unrecognised algorithm name\n");
+                usage_exit(argv[0]);
+            }
+            break;
+        case 'm':
+            if (string_digit(optarg)) {
+                opts.memsize = atoi(optarg);
+            } else {
+                fprintf(stderr, "Invalid memsize. Please enter integer only\n");
+                usage_exit(argv[0]);
+            }
+            break;
+        case 'q':
+            if (string_digit(optarg)) {
+                opts.quantum = atoi(optarg);
+            } else {
+                fprintf(stderr, "Invalid quantum. Please enter integer only\n");
+                usage_exit(argv[0]);
+            }
+            break;
         default: usage_exit(argv[0]);
         }
     }
@@ -87,18 +91,27 @@ static options_t load_options(int argc, char *argv[]) {
     return opts;
 }
 
-process_t *load_processes(unsigned int *n) {
-    process_t *list = (process_t*)malloc(sizeof(process_t));
-    int time_created, process_id, memory_size, job_time;
+static void usage_exit(char *exe) {
+    fprintf(stderr, "Usage: %s (-f filename | -a algorithm_name | -m memsize | -q quantum) \n", exe);
+    fprintf(stderr, "-f     the name of the process size file\n");
+    fprintf(stderr, "-a     the placement algorithm one of {first,best,worst}\n");
+    fprintf(stderr, "-m     the size of main memory\n");
+    fprintf(stderr, "-q     the length of the quantum\n");
+    exit(EXIT_FAILURE);
+}
 
-    while (scanf("%d %d %d %d\n", &time_created, &process_id, &memory_size, &job_time) == NUM_ENTRIES) {
-        (*n)++;
-        list = (process_t*)realloc(list, (*n)*sizeof(process_t));
-        list[(*n)-1].time_created = time_created;
-        list[(*n)-1].process_id = process_id;
-        list[(*n)-1].memory_size = memory_size;
-        list[(*n)-1].job_time = job_time;
+char *string_lower(char *str) {
+    unsigned char *p = (unsigned char *)str;
+    while (*p) {
+        *p = tolower((unsigned char)*p);
+        p++;
     }
+    return str;
+}
 
-    return list;
+int string_digit(const char *str) {
+    while (*str) {
+        if (!isdigit(*str++)) return 0;
+    }
+    return 1;
 }
