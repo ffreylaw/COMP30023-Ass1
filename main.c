@@ -6,6 +6,8 @@
  * Geoffrey Law (glaw@student.unimelb.edu.au)
  * 759218
  *
+ * main.c
+ *
  */
 #include <stdlib.h>
 #include <stdio.h>

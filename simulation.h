@@ -1,3 +1,14 @@
+/*
+ * COMP30024 Computer Systems
+ * Semester 1 2017
+ * Assignment 1
+ *
+ * Geoffrey Law (glaw@student.unimelb.edu.au)
+ * 759218
+ *
+ * simulation.h
+ *
+ */
 #include "list.h"
 
 /* Constants */
