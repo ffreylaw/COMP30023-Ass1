@@ -2,33 +2,24 @@
 #include <stdio.h>
 
 #include "simulation.h"
+#include "list.h"
 
+/* Simulate the memory management task */
 void simulate(char *filename, char *algorithm_name, int memsize, int quantum) {
-    disk_singleton_t *disk_instance = get_disk_instance();
-    disk_t *disk = disk_instance->disk;
-
-    memory_singleton_t *memory_instance = get_memory_instance();
-    memory_t *memory = memory_instance->memory;
+    cpu_t *cpu = get_instance();
+    disk_t *disk = cpu->disk;
+    memory_t *memory = cpu->memory;
     memory->memsize = memsize;
-
+    //print_list(print_process, stdout, disk->process_list);
 }
 
-disk_singleton_t* get_disk_instance() {
-    static disk_singleton_t *instance = NULL;
+/* Get the instance from the singleton structure */
+cpu_t* get_instance() {
+    static cpu_t *instance = NULL;
 
     if (instance == NULL) {
-        instance = (disk_singleton_t*)malloc(sizeof(disk_singleton_t));
+        instance = (cpu_t*)malloc(sizeof(cpu_t));
         instance->disk = load_processes();
-    }
-
-    return instance;
-}
-
-memory_singleton_t* get_memory_instance() {
-    static memory_singleton_t *instance = NULL;
-
-    if (instance == NULL) {
-        instance = (memory_singleton_t*)malloc(sizeof(memory_singleton_t));
         instance->memory = (memory_t*)malloc(sizeof(memory_t));
         instance->memory->memsize = 0;
     }
@@ -36,22 +27,31 @@ memory_singleton_t* get_memory_instance() {
     return instance;
 }
 
+/* Load processes from standard input */
 disk_t *load_processes() {
-    process_t *list = (process_t*)malloc(sizeof(process_t));
+    list_t list = NULL;
     int time_created, process_id, memory_size, job_time;
-    int n = 0;
 
     while (scanf("%d %d %d %d\n", &time_created, &process_id, &memory_size, &job_time) == NUM_ENTRIES) {
-        n++;
-        list = (process_t*)realloc(list, n*sizeof(process_t));
-        list[n-1].time_created = time_created;
-        list[n-1].process_id = process_id;
-        list[n-1].memory_size = memory_size;
-        list[n-1].job_time = job_time;
+        process_t *data = (process_t*)malloc(sizeof(process_t));
+        data->time_created = time_created;
+        data->process_id = process_id;
+        data->memory_size = memory_size;
+        data->job_time = job_time;
+        insert(data, &list);
     }
 
     disk_t *disk = (disk_t*)malloc(sizeof(disk_t));
-    disk->list = list;
-    disk->num_processes = n;
+    disk->process_list = list;
     return disk;
+}
+
+/* Print a process */
+void print_process(FILE *f, void *data) {
+    process_t *process = (process_t*) data;
+    fprintf(f, "{time created: %d, process id: %d, memory size: %d, job time: %d}\n",
+                process->time_created,
+                process->process_id,
+                process->memory_size,
+                process->job_time);
 }

@@ -1,3 +1,5 @@
+#include "list.h"
+
 /* Constants */
 #define NUM_ENTRIES 4
 
@@ -11,8 +13,7 @@ typedef struct {
 
 /* Struct represents a disk to store a list of processes */
 typedef struct {
-    process_t *list;
-    int num_processes;
+    list_t process_list;
 } disk_t;
 
 /* Struct represents a main memory */
@@ -20,20 +21,20 @@ typedef struct {
     int memsize;
 } memory_t;
 
-/* Singleton struct for disk */
+/* Singleton struct for the CPU */
 typedef struct {
     disk_t *disk;
-} disk_singleton_t;
-
-/* Singleton struct for memory */
-typedef struct {
     memory_t *memory;
-} memory_singleton_t;
+} cpu_t;
 
+/* Simulate the memory management task */
 void simulate(char*, char*, int, int);
 
-disk_singleton_t* get_disk_instance();
+/* Get the instance from the singleton structure */
+cpu_t* get_instance();
 
-memory_singleton_t* get_memory_instance();
-
+/* Load processes from standard input */
 disk_t *load_processes();
+
+/* Print a process */
+void print_process(FILE*, void*);

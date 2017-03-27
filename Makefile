@@ -16,8 +16,8 @@ CFLAGS =	-Wall -Wextra -std=gnu99
 ## SRC = Source files.
 ## EXE = Executable name.
 
-SRC =		main.c simulation.c
-OBJ =		main.o simulation.o
+SRC =		main.c list.c simulation.c
+OBJ =		main.o list.o simulation.o
 EXE = 		main
 
 ## Top level target is executable.
@@ -37,4 +37,5 @@ clobber: clean
 ## Dependencies
 
 main.o:			simulation.h
-simulation.o:	simulation.h
+list.o:			list.h
+simulation.o:	simulation.h list.h

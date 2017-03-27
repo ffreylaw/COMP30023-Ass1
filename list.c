@@ -1,7 +1,4 @@
 /*
- * COMP20007 Design of Algorithms
- * Semester 1 2016
- *
  * Clement Poh (cpoh@unimelb.edu.au)
  *
  * This module contains useful functions for list manipulation and creation.
@@ -19,18 +16,18 @@
 #define MAX_LINE_LEN 256
 
 /* An abstraction of recursively traversing a list from right to left */
-static void *foldl(void *(*f)(void *acc, void *data), void *acc, List list);
+static void *foldl(void *(*f)(void *acc, void *data), void *acc, list_t list);
 
 /* An abstraction of recursively traversing a list from left to right */
-static void *foldr(void *(*f)(void *data, void *res), void *res, List list);
+static void *foldr(void *(*f)(void *data, void *res), void *res, list_t list);
 
 /* Add one to accumulator */
 static void *plus_one(void *acc, void *data);
 
 /* Pushes data as the new head of list. May be used to create a new list:
  * new_list = push(NULL, data) */
-List push(List list, void *data) {
-    List node = malloc(sizeof(*node));
+list_t push(list_t list, void *data) {
+    list_t node = malloc(sizeof(*node));
     assert(node);
 
     node->data = data;
@@ -40,12 +37,12 @@ List push(List list, void *data) {
 }
 
 /* Pop the head off the list */
-void *pop(List *list) {
+void *pop(list_t *list) {
     if (!*list) {
         return NULL;
     } else {
         void *data = (*list)->data;
-        List ptr = *list;
+        list_t ptr = *list;
 
         /* Update list to point at the next element */
         *list = (*list)->next;
@@ -57,23 +54,23 @@ void *pop(List *list) {
 }
 
 /* Return the length of the list */
-int len(List list) {
+int len(list_t list) {
     return (long) foldl(plus_one, 0, list);
 }
 
 /* Returns a reversed copy of list */
-List reverse(List list) {
-    return (List) foldl((void *(*)(void *, void *))push, NULL, list);
+list_t reverse(list_t list) {
+    return (list_t) foldl((void *(*)(void *, void *))push, NULL, list);
 }
 
 /* Prepend data to list and update list */
-List prepend(List *list, void *data) {
+list_t prepend(list_t *list, void *data) {
     *list = push(*list, data);
     return *list;
 }
 
 /* Append l1 to the end of l2 */
-void append(List l1, List *l2) {
+void append(list_t l1, list_t *l2) {
     if (!*l2)
         *l2 = l1;
     else
@@ -81,12 +78,12 @@ void append(List l1, List *l2) {
 }
 
 /* Inserts data into the tail of list */
-void insert(void *data, List *list) {
+void insert(void *data, list_t *list) {
     insert_by(NULL, data, list);
 }
 
 /* Inserts data into the tail of list or position equal to the next element */
-void insert_by(bool (*eq)(void *data, void *node), void *data, List *list) {
+void insert_by(bool (*eq)(void *data, void *node), void *data, list_t *list) {
     if (!*list)
         *list = push(NULL, data);
     else if (eq && eq(data, (*list)->data))
@@ -97,7 +94,7 @@ void insert_by(bool (*eq)(void *data, void *node), void *data, List *list) {
 
 /* Inserts data into the tail of list: returns true if sucessful,
  * false if it finds an element already equal to data */
-bool insert_if(bool (*eq)(void *data, void *node), void *data, List *list) {
+bool insert_if(bool (*eq)(void *data, void *node), void *data, list_t *list) {
     if (!*list) {
         *list = push(NULL, data);
         return true;
@@ -107,7 +104,7 @@ bool insert_if(bool (*eq)(void *data, void *node), void *data, List *list) {
 }
 
 /* Find the node equal to aim in list, returns NULL if not found */
-List find(bool (*eq)(void *aim, void *node), void *aim, List list) {
+list_t find(bool (*eq)(void *aim, void *node), void *aim, list_t list) {
     return !list
         ? NULL
         : eq(aim, list->data)
@@ -117,7 +114,7 @@ List find(bool (*eq)(void *aim, void *node), void *aim, List list) {
 
 /* Removes and returns the element equal to aim in list,
  * returns NULL if not found */
-void *del(bool (*eq)(void *aim, void *node), void *aim, List *list) {
+void *del(bool (*eq)(void *aim, void *node), void *aim, list_t *list) {
     return !*list
         ? NULL
         : eq(aim, (*list)->data)
@@ -126,7 +123,7 @@ void *del(bool (*eq)(void *aim, void *node), void *aim, List *list) {
 }
 
 /* Print list to file by applying print to each node that is not NULL */
-void print_list(void (*print)(FILE *f, void *data), FILE *f, List list) {
+void print_list(void (*print)(FILE *f, void *data), FILE *f, list_t list) {
     if (list) {
         print(f, list->data);
         print_list(print, f, list->next);
@@ -134,7 +131,7 @@ void print_list(void (*print)(FILE *f, void *data), FILE *f, List list) {
 }
 
 /* Free the memory allocated to each list node */
-void free_list(List list) {
+void free_list(list_t list) {
     if (list) {
         free_list(list->next);
         free(list);
@@ -142,7 +139,7 @@ void free_list(List list) {
 }
 
 /* Returns a new list that passes the predicate p */
-//List filter(bool (*p)(void *data), List list) {
+//list_t filter(bool (*p)(void *data), list_t list) {
 //    /* Nested functions are not ISO C */
 //    __extension__
 //    void *f(void *data, void *res) {
@@ -158,14 +155,14 @@ static void *plus_one(void *acc, void *data) {
 }
 
 /* An abstraction of recursively traversing a list from right to left */
-static void *foldr(void *(*f)(void *data, void *res), void *res, List list) {
+static void *foldr(void *(*f)(void *data, void *res), void *res, list_t list) {
     return !list
         ? res
         : f(list->data, foldr(f, res, list->next));
 }
 
 /* An abstraction of recursively traversing a list from left to right */
-static void *foldl(void *(*f)(void *acc, void *data), void *acc, List list) {
+static void *foldl(void *(*f)(void *acc, void *data), void *acc, list_t list) {
     return !list
         ? acc
         : foldl(f, f(acc, list->data), list->next);
