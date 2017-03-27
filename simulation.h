@@ -23,6 +23,12 @@ typedef struct {
     process_t *process;
 } segment_t;
 
+/* Struct represents a CPU */
+typedef struct {
+    void (*swap)();
+    int quantum;
+} cpu_t;
+
 /* Struct represents a disk to store a list of processes */
 typedef struct {
     list_t process_list;
@@ -35,22 +41,24 @@ typedef struct {
     list_t free_list;
 } memory_t;
 
-/* Singleton struct for the CPU */
+/* Singleton struct for the computer */
 typedef struct {
+    cpu_t *cpu;
     disk_t *disk;
     memory_t *memory;
-    void (*swap)();
-    int quantum;
-} cpu_t;
+} computer_t;
+
+/* Clock time singleton */
+int *time();
 
 /* Simulate the memory management task */
 void simulate(char*, char*, int, int);
 
-/* Initialize the CPU */
-void initialize_cpu(char*, char*, int, int);
+/* Initialize the computer */
+void initialize_computer(char*, char*, int, int);
 
 /* Get the instance from the singleton structure */
-cpu_t* get_instance();
+computer_t* get_instance();
 
 /* Load processes from standard input */
 disk_t *load_processes(char*);
@@ -66,6 +74,9 @@ void best_fit();
 
 /* Worst fit algorithm implementation */
 void worst_fit();
+
+/* Schedule function */
+void schedule();
 
 /* Print a process */
 void print_process(FILE*, void*);
