@@ -11,6 +11,18 @@ typedef struct {
     int job_time;
 } process_t;
 
+/* Struct for a hole */
+typedef struct {
+    int address;
+    int memory_size;
+} hole_t;
+
+/* Struct for a segment */
+typedef struct {
+    hole_t *hole;
+    process_t *process;
+} segment_t;
+
 /* Struct represents a disk to store a list of processes */
 typedef struct {
     list_t process_list;
@@ -19,22 +31,47 @@ typedef struct {
 /* Struct represents a main memory */
 typedef struct {
     int memsize;
+    list_t segment_list;
+    list_t free_list;
 } memory_t;
 
 /* Singleton struct for the CPU */
 typedef struct {
     disk_t *disk;
     memory_t *memory;
+    void (*swap)();
+    int quantum;
 } cpu_t;
 
 /* Simulate the memory management task */
 void simulate(char*, char*, int, int);
 
+/* Initialize the CPU */
+void initialize_cpu(char*, char*, int, int);
+
 /* Get the instance from the singleton structure */
 cpu_t* get_instance();
 
 /* Load processes from standard input */
-disk_t *load_processes();
+disk_t *load_processes(char*);
+
+/* Initialize a memory with given memsize */
+memory_t *initialize_memory(int);
+
+/* First fit algorithm implementation */
+void first_fit();
+
+/* Best fit algorithm implementation */
+void best_fit();
+
+/* Worst fit algorithm implementation */
+void worst_fit();
 
 /* Print a process */
 void print_process(FILE*, void*);
+
+/* Print a hole */
+void print_hole(FILE *f, void *data);
+
+/* Print a segment */
+void print_segment(FILE *f, void *data);
