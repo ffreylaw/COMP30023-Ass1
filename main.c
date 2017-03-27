@@ -56,20 +56,11 @@ static options_t load_options(int argc, char *argv[]) {
 
     while ((c = getopt(argc, argv, "f:a:m:q:")) != -1) {
         switch (c) {
-        case 'f':
-            opts.filename = optarg;
-            break;
-        case 'a':
-            opts.algorithm_name = optarg;
-            break;
-        case 'm':
-            opts.memsize = atoi(optarg);
-            break;
-        case 'q':
-            opts.quantum = atoi(optarg);
-            break;
-        default:
-            usage_exit(argv[0]);
+        case 'f': opts.filename = optarg; break;
+        case 'a': opts.algorithm_name = optarg; break;
+        case 'm': opts.memsize = atoi(optarg); break;
+        case 'q': opts.quantum = atoi(optarg); break;
+        default: usage_exit(argv[0]);
         }
     }
 
