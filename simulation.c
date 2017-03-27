@@ -36,6 +36,7 @@ void test_driver() {
 
 }
 
+/* Add created process to disk */
 void step_add_to_disk(list_t *all_processes) {
     computer_t *computer = get_instance();
     disk_t *disk = computer->disk;

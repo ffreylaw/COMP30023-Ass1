@@ -55,6 +55,9 @@ int *time();
 /* Simulate the memory management task */
 void simulate(char*, char*, int, int);
 
+/* Add created process to disk */
+void step_add_to_disk(list_t*);
+
 /* Load processes from standard input */
 list_t load_processes(char*);
 
@@ -90,7 +93,5 @@ void print_hole(FILE *f, void *data);
 
 /* Print a segment */
 void print_segment(FILE *f, void *data);
-
-void step_add_to_disk(list_t*);
 
 void test_driver();
