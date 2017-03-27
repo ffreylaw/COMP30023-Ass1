@@ -1,10 +1,21 @@
+/*
+ * COMP30024 Computer Systems
+ * Semester 1 2017
+ * Assignment 1
+ *
+ * Geoffrey Law (glaw@student.unimelb.edu.au)
+ * 759218
+ *
+ */
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <getopt.h>
 
+/* Constants */
 #define NUM_ENTRIES 4
 
+/* Struct to store the configuration options from the command line */
 struct options {
     char *filename;
     char *algorithm_name;
@@ -12,6 +23,7 @@ struct options {
     int quantum;
 };
 
+/* Struct to store the entries of a process */
 struct process {
     int time_created;
     int process_id;
@@ -19,13 +31,16 @@ struct process {
     int job_time;
 };
 
+/* Type definitions */
 typedef struct options options_t;
 typedef struct process process_t;
 
+/* Function declarations */
 static void usage_exit(char *exe);
 static options_t load_options(int argc, char *argv[]);
 process_t *load_processes(unsigned int *n);
 
+/* The Main Function */
 int main(int argc, char *argv[]) {
     options_t opts = load_options(argc, argv);
 
@@ -64,8 +79,7 @@ static options_t load_options(int argc, char *argv[]) {
         }
     }
 
-    if (opts.filename == NULL || opts.algorithm_name == NULL
-            || opts.memsize == -1 || opts.quantum == -1) {
+    if (opts.filename == NULL || opts.algorithm_name == NULL || opts.memsize == -1 || opts.quantum == -1) {
         fprintf(stderr, "All of -f, -a, -m or -q must be specified\n");
         usage_exit(argv[0]);
     }
@@ -77,8 +91,7 @@ process_t *load_processes(unsigned int *n) {
     process_t *list = (process_t*)malloc(sizeof(process_t));
     int time_created, process_id, memory_size, job_time;
 
-    while (scanf("%d %d %d %d\n", &time_created, &process_id,
-            &memory_size, &job_time) == NUM_ENTRIES) {
+    while (scanf("%d %d %d %d\n", &time_created, &process_id, &memory_size, &job_time) == NUM_ENTRIES) {
         (*n)++;
         list = (process_t*)realloc(list, (*n)*sizeof(process_t));
         list[(*n)-1].time_created = time_created;
