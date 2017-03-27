@@ -7,16 +7,46 @@
 
 /* Simulate the memory management task */
 void simulate(char *filename, char *algorithm_name, int memsize, int quantum) {
-    initialize_computer(filename, algorithm_name, memsize, quantum);
+    initialize_computer(algorithm_name, memsize, quantum);
     computer_t *computer = get_instance();
     cpu_t *cpu = computer->cpu;
     disk_t *disk = computer->disk;
     memory_t *memory = computer->memory;
 
-    // print_list(print_process, stdout, disk->process_list);
+    list_t all_processes = load_processes(filename);
+    int num_processes = len(all_processes);
+    time();
+
+    // print_list(print_process, stdout, all_processes);
     // print_list(print_segment, stdout, memory->segment_list);
     // print_list(print_hole, stdout, memory->free_list);
 
+    while (cpu->num_completed_process < num_processes) {
+        step_add_to_disk(&all_processes);
+        if (!all_processes) {
+            break;
+        }
+        (*time())++;
+    }
+
+    fprintf(stdout, "time %d, simulation finished.\n", *time());
+}
+
+void test_driver() {
+
+}
+
+void step_add_to_disk(list_t *all_processes) {
+    computer_t *computer = get_instance();
+    disk_t *disk = computer->disk;
+
+    if (*all_processes != NULL) {
+        process_t *process = (process_t*) (*all_processes)->data;
+        if (process->time_created == *time()) {
+            process_t *data = pop(all_processes);
+            insert(data, &(disk->process_list));
+        }
+    }
 }
 
 /* Clock time singleton */
@@ -29,35 +59,8 @@ int *time() {
     return time;
 }
 
-/* Initialize the computer */
-void initialize_computer(char *filename, char *algorithm_name, int memsize, int quantum) {
-    computer_t *computer = get_instance();
-    computer->disk = load_processes(filename);
-    computer->memory = initialize_memory(memsize);
-    if (!strcmp(algorithm_name, "first")) {
-        computer->cpu->swap = first_fit;
-    } else if (!strcmp(algorithm_name, "best")) {
-        computer->cpu->swap = best_fit;
-    } else if (!strcmp(algorithm_name, "worst")) {
-        computer->cpu->swap = worst_fit;
-    }
-    computer->cpu->quantum = quantum;
-}
-
-/* Get the instance from the singleton structure */
-computer_t* get_instance() {
-    static computer_t *instance = NULL;
-    if (instance == NULL) {
-        instance = (computer_t*)malloc(sizeof(computer_t));
-        instance->cpu = (cpu_t*)malloc(sizeof(cpu_t));
-        instance->disk = NULL;
-        instance->memory = NULL;
-    }
-    return instance;
-}
-
 /* Load processes from standard input */
-disk_t *load_processes(char *filename) {
+list_t load_processes(char *filename) {
     FILE *f = fopen(filename, "r");
     if (!f) {
         fprintf(stderr, "Fail to open file %s\n", filename);
@@ -76,11 +79,47 @@ disk_t *load_processes(char *filename) {
         insert(process, &process_list);
     }
 
+    // disk_t *disk = (disk_t*)malloc(sizeof(disk_t));
+    // disk->process_list = process_list;
+    return process_list;
+}
+
+/* Get the instance from the singleton structure */
+computer_t* get_instance() {
+    static computer_t *instance = NULL;
+    if (instance == NULL) {
+        instance = (computer_t*)malloc(sizeof(computer_t));
+        instance->cpu = (cpu_t*)malloc(sizeof(cpu_t));
+        instance->disk = NULL;
+        instance->memory = NULL;
+    }
+    return instance;
+}
+
+/* Initialize the computer */
+void initialize_computer(char *algorithm_name, int memsize, int quantum) {
+    computer_t *computer = get_instance();
+    computer->disk = initialize_disk();
+    computer->memory = initialize_memory(memsize);
+    if (!strcmp(algorithm_name, "first")) {
+        computer->cpu->swap = first_fit;
+    } else if (!strcmp(algorithm_name, "best")) {
+        computer->cpu->swap = best_fit;
+    } else if (!strcmp(algorithm_name, "worst")) {
+        computer->cpu->swap = worst_fit;
+    }
+    computer->cpu->quantum = quantum;
+    computer->cpu->num_completed_process = 0;
+}
+
+/* Initialize a disk */
+disk_t *initialize_disk() {
     disk_t *disk = (disk_t*)malloc(sizeof(disk_t));
-    disk->process_list = process_list;
+    disk->process_list = NULL;
     return disk;
 }
 
+/* Initialize a memory with given memsize */
 memory_t *initialize_memory(int memsize) {
     memory_t *memory = (memory_t*)malloc(sizeof(memory_t));
     memory->memsize = memsize;
@@ -102,34 +141,22 @@ memory_t *initialize_memory(int memsize) {
 
 /* First fit algorithm implementation */
 void first_fit() {
-    computer_t *computer = get_instance();
-    cpu_t *cpu = computer->cpu;
-    disk_t *disk = computer->disk;
-    memory_t *memory = computer->memory;
+
 }
 
 /* Best fit algorithm implementation */
 void best_fit() {
-    computer_t *computer = get_instance();
-    cpu_t *cpu = computer->cpu;
-    disk_t *disk = computer->disk;
-    memory_t *memory = computer->memory;
+
 }
 
 /* Worst fit algorithm implementation */
 void worst_fit() {
-    computer_t *computer = get_instance();
-    cpu_t *cpu = computer->cpu;
-    disk_t *disk = computer->disk;
-    memory_t *memory = computer->memory;
+
 }
 
 /* Schedule function */
 void schedule() {
-    computer_t *computer = get_instance();
-    cpu_t *cpu = computer->cpu;
-    disk_t *disk = computer->disk;
-    memory_t *memory = computer->memory;
+
 }
 
 /* Print a process */

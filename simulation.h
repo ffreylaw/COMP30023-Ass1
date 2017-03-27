@@ -27,6 +27,7 @@ typedef struct {
 typedef struct {
     void (*swap)();
     int quantum;
+    int num_completed_process;
 } cpu_t;
 
 /* Struct represents a disk to store a list of processes */
@@ -54,14 +55,17 @@ int *time();
 /* Simulate the memory management task */
 void simulate(char*, char*, int, int);
 
-/* Initialize the computer */
-void initialize_computer(char*, char*, int, int);
+/* Load processes from standard input */
+list_t load_processes(char*);
 
 /* Get the instance from the singleton structure */
 computer_t* get_instance();
 
-/* Load processes from standard input */
-disk_t *load_processes(char*);
+/* Initialize the computer */
+void initialize_computer(char*, int, int);
+
+/* Initialize a disk */
+disk_t *initialize_disk();
 
 /* Initialize a memory with given memsize */
 memory_t *initialize_memory(int);
@@ -86,3 +90,7 @@ void print_hole(FILE *f, void *data);
 
 /* Print a segment */
 void print_segment(FILE *f, void *data);
+
+void step_add_to_disk(list_t*);
+
+void test_driver();
