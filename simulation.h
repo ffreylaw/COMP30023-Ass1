@@ -56,7 +56,7 @@ int *time();
 void simulate(char*, char*, int, int);
 
 /* Add created process to disk */
-void step_add_to_disk(list_t*);
+void step_create_process(list_t*);
 
 /* Load processes from standard input */
 list_t load_processes(char*);

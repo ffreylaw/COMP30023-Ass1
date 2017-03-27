@@ -22,7 +22,7 @@ void simulate(char *filename, char *algorithm_name, int memsize, int quantum) {
     // print_list(print_hole, stdout, memory->free_list);
 
     while (cpu->num_completed_process < num_processes) {
-        step_add_to_disk(&all_processes);
+        step_create_process(&all_processes);
         if (!all_processes) {
             break;
         }
@@ -37,7 +37,7 @@ void test_driver() {
 }
 
 /* Add created process to disk */
-void step_add_to_disk(list_t *all_processes) {
+void step_create_process(list_t *all_processes) {
     computer_t *computer = get_instance();
     disk_t *disk = computer->disk;
 
