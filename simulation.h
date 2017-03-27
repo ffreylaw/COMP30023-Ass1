@@ -41,7 +41,7 @@ typedef struct {
     int num_completed_process;
 } cpu_t;
 
-/* Struct represents a disk to store a list of processes */
+/* Struct represents a disk to store a list of created processes */
 typedef struct {
     list_t process_list;
 } disk_t;
@@ -60,7 +60,7 @@ typedef struct {
     memory_t *memory;
 } computer_t;
 
-/* Clock time singleton */
+/* Get clock time from the singleton */
 int *time();
 
 /* Simulate the memory management task */
@@ -69,10 +69,10 @@ void simulate(char*, char*, int, int);
 /* Add created process to disk */
 void step_create_process(list_t*);
 
-/* Load processes from standard input */
+/* Load processes from given input file */
 list_t load_processes(char*);
 
-/* Get the instance from the singleton structure */
+/* Get instance from the singleton */
 computer_t* get_instance();
 
 /* Initialize the computer */

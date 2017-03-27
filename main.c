@@ -31,7 +31,7 @@ static void usage_exit(char *exe);
 char *string_lower(char *str);
 int string_digit(const char *str);
 
-/* The Main Function */
+/* The main function */
 int main(int argc, char *argv[]) {
     options_t opts = load_options(argc, argv);
     simulate(opts.filename, opts.algorithm_name, opts.memsize, opts.quantum);

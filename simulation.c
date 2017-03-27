@@ -61,7 +61,7 @@ void step_create_process(list_t *all_processes) {
     }
 }
 
-/* Clock time singleton */
+/* Get clock time from the singleton */
 int *time() {
     static int *time = NULL;
     if (time == NULL) {
@@ -71,7 +71,7 @@ int *time() {
     return time;
 }
 
-/* Load processes from standard input */
+/* Load processes from given input file */
 list_t load_processes(char *filename) {
     FILE *f = fopen(filename, "r");
     if (!f) {
@@ -96,7 +96,7 @@ list_t load_processes(char *filename) {
     return process_list;
 }
 
-/* Get the instance from the singleton structure */
+/* Get instance from the singleton */
 computer_t* get_instance() {
     static computer_t *instance = NULL;
     if (instance == NULL) {
