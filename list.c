@@ -83,12 +83,9 @@ void *pop_head(list_t **list) {
         return NULL;
     } else {
         void *data = (*list)->head->data;
-        node_t *ptr = (*list)->head;
         /* Update list to point at the next element */
         (*list)->head = (*list)->head->next;
         (*list)->tail = !((*list)->head) ? NULL : (*list)->tail;
-        /* Free the memory allocated to the list node */
-        free(ptr);
         return data;
     }
 }
@@ -99,12 +96,9 @@ void *pop_tail(list_t **list) {
         return NULL;
     } else {
         void *data = (*list)->tail->data;
-        node_t *ptr = (*list)->tail;
         /* Update list to point at the previous element */
         (*list)->tail = (*list)->tail->prev;
         (*list)->head = !((*list)->tail) ? NULL : (*list)->head;
-        /* Free the memory allocated to the list node */
-        free(ptr);
         return data;
     }
 }
@@ -136,7 +130,6 @@ void *del(void *aim, list_t **list) {
     while (node != NULL) {
         if (node->data == aim) {
             void *data = node->data;
-            node_t *ptr = node;
             if (node->prev != NULL) {
                 node->prev->next = node->next;
             } else {
@@ -147,12 +140,45 @@ void *del(void *aim, list_t **list) {
             } else {
                 (*list)->tail = node->prev;
             }
-            free(ptr);
             return data;
             break;
         }
+        node = node->next;
     }
     return NULL;
+}
+
+bool replace(void *aim, void *data, list_t **list) {
+    node_t *node = (*list)->head;
+    while (node != NULL) {
+        if (node->data == aim) {
+            node_t *new_node = create_node(data);
+            if (node->prev != NULL) {
+                node->prev->next = new_node;
+            } else {
+                (*list)->head = new_node;
+            }
+            if (node->next != NULL) {
+                node->next->prev = new_node;
+            } else {
+                (*list)->tail = new_node;
+            }
+            new_node->next = node->next;
+            new_node->prev = node->prev;
+            return true;
+            break;
+        }
+        node = node->next;
+    }
+    return false;
+}
+
+/* Free the memory allocated to each list node */
+void free_list(node_t *root) {
+    if (root) {
+        free_list(root->next);
+        free(root);
+    }
 }
 
 /* Print list to file by applying print to each node that is not NULL */

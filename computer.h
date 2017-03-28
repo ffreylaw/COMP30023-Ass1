@@ -84,6 +84,39 @@ memory_t *initialize_memory(int);
 /* Calculate memory usage */
 void calculate_memusage();
 
+/* First fit algorithm implementation */
+void first_fit();
+
+/* Best fit algorithm implementation */
+void best_fit();
+
+/* Worst fit algorithm implementation */
+void worst_fit();
+
+/* Schedule function */
+void round_robin(int);
+
+/* Get a process from disk */
+process_t *get_disk_process();
+
+/* Get a process from memory segments */
+process_t *get_memory_process();
+
+/* Delete a process from disk */
+process_t *del_disk_process(process_t*);
+
+/* Delete a process from memory segments */
+process_t *del_memory_process(process_t*);
+
+/* Merge holes in memory segments */
+void merge_holes(segment_t*);
+
+/* Swap a process into memory */
+void swap_in(process_t*, segment_t*);
+
+/* Swap a process out of memory into disk */
+void swap_out();
+
 /* Print a process */
 void print_process(FILE*, void*);
 

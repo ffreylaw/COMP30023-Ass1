@@ -28,11 +28,11 @@ typedef enum {
     E3      = 3,  // A process that was running on the CPU has called exit and terminated.
 } event;
 
-/* Get clock time from the singleton */
-int *time();
-
 /* Simulate the memory management task */
 void simulate(char*, char*, int, int);
+
+/* Get clock time from the singleton */
+int *time();
 
 /* Run the cpu and return an event */
 int run_cpu();
@@ -42,31 +42,5 @@ void create_process(list_t**);
 
 /* Load processes from given input file */
 list_t *load_processes(char*);
-
-/* First fit algorithm implementation */
-void first_fit();
-
-/* Best fit algorithm implementation */
-void best_fit();
-
-/* Worst fit algorithm implementation */
-void worst_fit();
-
-/* Schedule function */
-void round_robin(int);
-
-process_t *get_disk_process();
-
-process_t *get_memory_process();
-
-process_t *del_disk_process(process_t*);
-
-process_t *del_memory_process(process_t*);
-
-void swap_in(process_t*, segment_t*);
-
-void swap_out();
-
-void test_driver();
 
 #endif

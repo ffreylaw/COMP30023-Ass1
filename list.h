@@ -54,6 +54,8 @@ void *pop_tail(list_t**);
 
 void *del(void*, list_t**);
 
+bool replace(void*, void*, list_t**);
+
 /* Print list to file by applying print to each node that is not NULL */
 void print_list(void (*)(FILE*, void*), FILE*, node_t*);
 
