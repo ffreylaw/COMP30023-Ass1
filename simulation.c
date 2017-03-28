@@ -82,9 +82,9 @@ int run_cpu() {
 
         if (computer->cpu->running_process->job_time == 0) {
             event = E3;
-            process_t *process_e3 = pop_head(&(computer->cpu->process_queue));
-            del_memory_process(process_e3);
-            del(process_e3, &(computer->cpu->process_queue));
+            process_t *process = pop_head(&(computer->cpu->process_queue));
+            del_memory_process(process);
+            del(process, &(computer->cpu->process_queue));
         } else if (computer->cpu->running_time == computer->cpu->quantum) {
             event = E2;
         }

@@ -169,8 +169,8 @@ void round_robin(int event) {
         case E2:
             computer->cpu->running_time = 0;
             computer->cpu->running_process = NULL;
-            process_t *process_e2 = pop_head(&queue);
-            insert_at_tail(process_e2, &queue);
+            process_t *process = pop_head(&queue);
+            insert_at_tail(process, &queue);
             if (queue->head != NULL) {
                 computer->cpu->running_process = (process_t*) queue->head->data;
             }
