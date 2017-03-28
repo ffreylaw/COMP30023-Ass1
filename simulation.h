@@ -53,11 +53,17 @@ void best_fit();
 void worst_fit();
 
 /* Schedule function */
-void round_robin();
+void round_robin(int);
 
-process_t *get_process();
+process_t *get_disk_process();
 
-void swap_in(process_t*, hole_t*);
+process_t *get_memory_process();
+
+process_t *del_disk_process(process_t*);
+
+process_t *del_memory_process(process_t*);
+
+void swap_in(process_t*, segment_t*);
 
 void swap_out();
 

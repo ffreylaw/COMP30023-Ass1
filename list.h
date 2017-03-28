@@ -13,6 +13,7 @@
 #define LIST_H
 
 #include <stdio.h>
+#include <stdbool.h>
 
 typedef struct node node_t;
 
@@ -42,11 +43,16 @@ void insert_at_head(void*, list_t**);
 /* Inserts data into the tail of list */
 void insert_at_tail(void*, list_t**);
 
+/* Inserts data before aim */
+bool insert_before(void*, void*, list_t**);
+
 /* Pop the head off the list */
 void *pop_head(list_t**);
 
 /* Pop the tail off the list */
 void *pop_tail(list_t**);
+
+void *del(void*, list_t**);
 
 /* Print list to file by applying print to each node that is not NULL */
 void print_list(void (*)(FILE*, void*), FILE*, node_t*);

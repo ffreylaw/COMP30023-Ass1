@@ -10,6 +10,7 @@
  *
  */
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include "list.h"
 
@@ -83,11 +84,9 @@ void *pop_head(list_t **list) {
     } else {
         void *data = (*list)->head->data;
         node_t *ptr = (*list)->head;
-
         /* Update list to point at the next element */
         (*list)->head = (*list)->head->next;
         (*list)->tail = !((*list)->head) ? NULL : (*list)->tail;
-
         /* Free the memory allocated to the list node */
         free(ptr);
         return data;
@@ -101,18 +100,58 @@ void *pop_tail(list_t **list) {
     } else {
         void *data = (*list)->tail->data;
         node_t *ptr = (*list)->tail;
-
         /* Update list to point at the previous element */
         (*list)->tail = (*list)->tail->prev;
         (*list)->head = !((*list)->tail) ? NULL : (*list)->head;
-
         /* Free the memory allocated to the list node */
         free(ptr);
         return data;
     }
 }
 
-void *delete(void *aim, list_t **list) {
+/* Inserts data before aim */
+bool insert_before(void *aim, void *data, list_t **list) {
+    node_t *node = (*list)->head;
+    while (node != NULL) {
+        if (node->data == aim) {
+            node_t *new_node = create_node(data);
+            if (node->prev != NULL) {
+                node->prev->next = new_node;
+            } else {
+                (*list)->head = new_node;
+            }
+            new_node->prev = node->prev;
+            node->prev = new_node;
+            new_node->next = node;
+            return true;
+            break;
+        }
+        node = node->next;
+    }
+    return false;
+}
+
+void *del(void *aim, list_t **list) {
+    node_t *node = (*list)->head;
+    while (node != NULL) {
+        if (node->data == aim) {
+            void *data = node->data;
+            node_t *ptr = node;
+            if (node->prev != NULL) {
+                node->prev->next = node->next;
+            } else {
+                (*list)->head = node->next;
+            }
+            if (node->next != NULL) {
+                node->next->prev = node->prev;
+            } else {
+                (*list)->tail = node->prev;
+            }
+            free(ptr);
+            return data;
+            break;
+        }
+    }
     return NULL;
 }
 

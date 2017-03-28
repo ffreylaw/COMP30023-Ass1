@@ -39,7 +39,7 @@ typedef struct segment {
 /* Struct represents a CPU */
 typedef struct cpu {
     void (*swap)();
-    void (*schedule)();
+    void (*schedule)(int);
     int quantum;
     list_t *process_queue;
     process_t *running_process;

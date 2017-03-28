@@ -35,19 +35,10 @@ void simulate(char *filename, char *algorithm_name, int memsize, int quantum) {
     while (computer->cpu->num_completed_process < num_processes) {
         create_process(&all_processes);
         int event = run_cpu();
-        switch (event) {
-            case E1:
-                (computer->cpu->swap)();
-                break;
-            case E2:
-                (computer->cpu->swap)();
-                break;
-            case E3:
-                (computer->cpu->swap)();
-                break;
-            default: break;
+        if (event) {
+            (computer->cpu->swap)();
+            (computer->cpu->schedule)(event);
         }
-
         if (!(all_processes->head)) {
             break;
         }
@@ -64,12 +55,11 @@ void test_driver() {
 /* Run the cpu and return an event */
 int run_cpu() {
     computer_t *computer = get_instance();
-    cpu_t *cpu = computer->cpu;
-    memory_t *memory = computer->memory;
 
-    int event = -1;
+    int event = NONE;
 
-    node_t *segment_node = memory->segment_list->head;
+    /* E1 */
+    node_t *segment_node = computer->memory->segment_list->head;
     bool empty_flag = true;
     while (segment_node != NULL) {
         segment_t *segment = (segment_t*) segment_node->data;
@@ -83,7 +73,22 @@ int run_cpu() {
         event = E1;
     }
 
-    return 1;
+    /* E2, E3 */
+    if (computer->cpu->running_process != NULL) {
+        if (computer->cpu->running_time < computer->cpu->quantum
+            && computer->cpu->running_process->job_time != 0) {
+            computer->cpu->running_time += 1;
+            computer->cpu->running_process->job_time -= 1;
+        }
+
+        if (computer->cpu->running_process->job_time == 0) {
+            event = E3;
+        } else if (computer->cpu->running_time == computer->cpu->quantum) {
+            event = E2;
+        }
+    }
+
+    return event;
 
 }
 
@@ -139,9 +144,9 @@ list_t *load_processes(char *filename) {
 /* First fit algorithm implementation */
 void first_fit() {
     computer_t *computer = get_instance();
-
+    
     if (computer->disk->process_list->head != NULL) {
-        process_t *process = get_process();
+        process_t *process = get_disk_process();
         node_t *segment_node = computer->memory->segment_list->head;
         bool has_enough_hole = false;
         while (segment_node != NULL) {
@@ -149,7 +154,7 @@ void first_fit() {
             if (segment->hole != NULL) {
                 if (process->memory_size <= segment->hole->memory_size) {
                     has_enough_hole = true;
-                    swap_in(process, segment->hole);
+                    swap_in(process, segment);
                     break;
                 }
             }
@@ -166,20 +171,52 @@ void first_fit() {
 
 /* Best fit algorithm implementation */
 void best_fit() {
+    computer_t *computer = get_instance();
+
 
 }
 
 /* Worst fit algorithm implementation */
 void worst_fit() {
+    computer_t *computer = get_instance();
+
 
 }
 
 /* Schedule function */
-void round_robin() {
+void round_robin(int event) {
+    computer_t *computer = get_instance();
+
+    list_t *queue = computer->cpu->process_queue;
+
+    switch (event) {
+        case E1:
+            if (queue->head != NULL) {
+                computer->cpu->running_process = (process_t*) queue->head->data;
+            }
+            break;
+        case E2:
+            computer->cpu->running_process = NULL;
+            process_t *process_e2 = pop_head(&queue);
+            insert_at_tail(process_e2, &queue);
+            if (queue->head != NULL) {
+                computer->cpu->running_process = (process_t*) queue->head->data;
+            }
+            break;
+        case E3:
+            computer->cpu->running_process = NULL;
+            process_t *process_e3 = pop_head(&queue);
+            del_memory_process(process_e3);
+            if (queue->head != NULL) {
+                computer->cpu->running_process = (process_t*) queue->head->data;
+            }
+            break;
+        default: break;
+    }
 
 }
 
-process_t *get_process() {
+process_t *get_disk_process() {
     computer_t *computer = get_instance();
 
     node_t *process_node = computer->disk->process_list->head;
@@ -187,7 +224,6 @@ process_t *get_process() {
     process_t *process = (process_t*) process_node->data;
     int longest_time = *time() - process->time_placed_on_disk;
     int highest_priority = process->process_id;
-
     process_node = process_node->next;
 
     while (process_node != NULL) {
@@ -209,17 +245,51 @@ process_t *get_process() {
     return process;
 }
 
-void swap_in(process_t *process, hole_t *hole) {
+process_t *get_memory_process() {
     computer_t *computer = get_instance();
 
-    hole->memory_size -= process->memory_size;
+    node_t *segment_node = computer->memory->segment_list->head;
+
+    process_t *process = NULL;
+    int longest_time = -1;
+
+    while (segment_node != NULL) {
+        if (((segment_t*)segment_node->data)->process != NULL) {
+            process_t *data = ((segment_t*)segment_node->data)->process;
+            if ((*time() - data->time_placed_on_memory) > longest_time) {
+                process = data;
+                longest_time = *time() - data->time_placed_on_memory;
+            }
+        }
+        segment_node = segment_node->next;
+    }
+
+    return process;
+}
+
+process_t *del_disk_process(process_t *process) {
+    computer_t *computer = get_instance();
+    return del(process, &(computer->disk->process_list));
+}
+
+process_t *del_memory_process(process_t *process) {
+    computer_t *computer = get_instance();
+
+
+}
+
+void swap_in(process_t *process, segment_t *segment_hole) {
+    computer_t *computer = get_instance();
+
+    segment_hole->hole->memory_size -= process->memory_size;
 
     segment_t *process_segment = (segment_t*)malloc(sizeof(segment_t));
     process_segment->hole = NULL;
-    process_segment->process = pop_head(&(computer->disk->process_list));
+    process_segment->process = del_disk_process(process);
     process_segment->process->time_placed_on_disk = -1;
     process_segment->process->time_placed_on_memory = *time();
-    insert_at_head(process_segment, &(computer->memory->segment_list));
+    insert_before(segment_hole, process_segment, &(computer->memory->segment_list));
+    insert_at_tail(process_segment->process, &(computer->cpu->process_queue));
 
     calculate_memusage();
     computer->memory->num_processes += 1;
@@ -235,5 +305,7 @@ void swap_in(process_t *process, hole_t *hole) {
 }
 
 void swap_out() {
+    computer_t *computer = get_instance();
+
 
 }

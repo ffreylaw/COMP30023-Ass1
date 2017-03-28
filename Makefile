@@ -1,11 +1,3 @@
-#
-# Sample Makefile for project 1
-#
-# The program used for illustration purposes is
-# a simple program using prime numbers
-#
-
-
 ## CC  = Compiler.
 ## CFLAGS = Compiler flags.
 CC	= gcc
