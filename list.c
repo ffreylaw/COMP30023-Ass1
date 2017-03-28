@@ -1,51 +1,92 @@
 /*
- * Clement Poh (cpoh@unimelb.edu.au)
+ * COMP30024 Computer Systems
+ * Semester 1 2017
+ * Assignment 1
  *
- * This module contains useful functions for list manipulation and creation.
+ * Geoffrey Law (glaw@student.unimelb.edu.au)
+ * 759218
  *
- * XXX: This module may be used as a black box. It is not necessary to
- * XXX: understand the implementation details of the functions to use them.
- * XXX: The intrepid student is welcome to explore and learn the dark arts.
+ * list.c
  *
-*/
+ */
 #include <stdlib.h>
-#include <assert.h>
 
 #include "list.h"
 
-#define MAX_LINE_LEN 256
+/* Create a new list */
+list_t *create_list() {
+    list_t *new_list = (list_t*)malloc(sizeof(list_t));
+	new_list->head = NULL;
+	new_list->tail = NULL;
+    return new_list;
+}
 
-/* An abstraction of recursively traversing a list from right to left */
-static void *foldl(void *(*f)(void *acc, void *data), void *acc, list_t list);
+/* Create a new node */
+node_t *create_node(void *data) {
+    node_t *new_node = (node_t*)malloc(sizeof(node_t));
+	new_node->data = data;
+	new_node->prev = NULL;
+	new_node->next = NULL;
+    return new_node;
+}
 
-/* An abstraction of recursively traversing a list from left to right */
-static void *foldr(void *(*f)(void *data, void *res), void *res, list_t list);
+/* Return the length of the list */
+int len(list_t *list) {
+    int length = 0;
+    node_t *node;
+    for (node = list->head; node != NULL; node = node->next){ length++; }
+    return length;
+}
 
-/* Add one to accumulator */
-static void *plus_one(void *acc, void *data);
+/* Inserts data into the head of list */
+void insert_at_head(void *data, list_t **list) {
+    node_t *new_node = create_node(data);
+    if (*list == NULL) {
+    	*list = create_list();
+        (*list)->head = new_node;
+        (*list)->tail = new_node;
+        return;
+    }
+    if ((*list)->head == NULL) {
+        (*list)->head = new_node;
+        (*list)->tail = new_node;
+        return;
+    }
+	(*list)->head->prev = new_node;
+	new_node->next = (*list)->head;
+	(*list)->head = new_node;
+}
 
-/* Pushes data as the new head of list. May be used to create a new list:
- * new_list = push(NULL, data) */
-list_t push(list_t list, void *data) {
-    list_t node = malloc(sizeof(*node));
-    assert(node);
-
-    node->data = data;
-    node->next = list;
-
-    return node;
+/* Inserts data into the tail of list */
+void insert_at_tail(void *data, list_t **list) {
+    node_t *new_node = create_node(data);
+    if (*list == NULL) {
+    	*list = create_list();
+        (*list)->head = new_node;
+        (*list)->tail = new_node;
+        return;
+    }
+    if ((*list)->tail == NULL) {
+        (*list)->head = new_node;
+        (*list)->tail = new_node;
+        return;
+    }
+	(*list)->tail->next = new_node;
+	new_node->prev = (*list)->tail;
+	(*list)->tail = new_node;
 }
 
 /* Pop the head off the list */
-void *pop(list_t *list) {
-    if (!*list) {
+void *pop_head(list_t **list) {
+    if (!((*list)->head)) {
         return NULL;
     } else {
-        void *data = (*list)->data;
-        list_t ptr = *list;
+        void *data = (*list)->head->data;
+        node_t *ptr = (*list)->head;
 
         /* Update list to point at the next element */
-        *list = (*list)->next;
+        (*list)->head = (*list)->head->next;
+        (*list)->tail = !((*list)->head) ? NULL : (*list)->tail;
 
         /* Free the memory allocated to the list node */
         free(ptr);
@@ -53,117 +94,28 @@ void *pop(list_t *list) {
     }
 }
 
-/* Return the length of the list */
-int len(list_t list) {
-    return (long) foldl(plus_one, 0, list);
-}
+/* Pop the tail off the list */
+void *pop_tail(list_t **list) {
+    if (!((*list)->tail)) {
+        return NULL;
+    } else {
+        void *data = (*list)->tail->data;
+        node_t *ptr = (*list)->tail;
 
-/* Returns a reversed copy of list */
-list_t reverse(list_t list) {
-    return (list_t) foldl((void *(*)(void *, void *))push, NULL, list);
-}
+        /* Update list to point at the previous element */
+        (*list)->tail = (*list)->tail->prev;
+        (*list)->head = !((*list)->tail) ? NULL : (*list)->head;
 
-/* Prepend data to list and update list */
-list_t prepend(list_t *list, void *data) {
-    *list = push(*list, data);
-    return *list;
-}
-
-/* Append l1 to the end of l2 */
-void append(list_t l1, list_t *l2) {
-    if (!*l2)
-        *l2 = l1;
-    else
-        append(l1, &(*l2)->next);
-}
-
-/* Inserts data into the tail of list */
-void insert(void *data, list_t *list) {
-    insert_by(NULL, data, list);
-}
-
-/* Inserts data into the tail of list or position equal to the next element */
-void insert_by(bool (*eq)(void *data, void *node), void *data, list_t *list) {
-    if (!*list)
-        *list = push(NULL, data);
-    else if (eq && eq(data, (*list)->data))
-        (*list)->next = push((*list)->next, data);
-    else
-        insert_by(eq, data, &(*list)->next);
-}
-
-/* Inserts data into the tail of list: returns true if sucessful,
- * false if it finds an element already equal to data */
-bool insert_if(bool (*eq)(void *data, void *node), void *data, list_t *list) {
-    if (!*list) {
-        *list = push(NULL, data);
-        return true;
-    } else return (eq && eq(data, (*list)->data))
-        ? false
-        : insert_if(eq, data, &(*list)->next);
-}
-
-/* Find the node equal to aim in list, returns NULL if not found */
-list_t find(bool (*eq)(void *aim, void *node), void *aim, list_t list) {
-    return !list
-        ? NULL
-        : eq(aim, list->data)
-            ? list
-            : find(eq, aim, list->next);
-}
-
-/* Removes and returns the element equal to aim in list,
- * returns NULL if not found */
-void *del(bool (*eq)(void *aim, void *node), void *aim, list_t *list) {
-    return !*list
-        ? NULL
-        : eq(aim, (*list)->data)
-            ? pop(list)
-            : del(eq, aim, &(*list)->next);
+        /* Free the memory allocated to the list node */
+        free(ptr);
+        return data;
+    }
 }
 
 /* Print list to file by applying print to each node that is not NULL */
-void print_list(void (*print)(FILE *f, void *data), FILE *f, list_t list) {
-    if (list) {
-        print(f, list->data);
-        print_list(print, f, list->next);
+void print_list(void (*print)(FILE *f, void *data), FILE *f, node_t *root) {
+    if (root) {
+        print(f, root->data);
+        print_list(print, f, root->next);
     }
-}
-
-/* Free the memory allocated to each list node */
-void free_list(list_t list) {
-    if (list) {
-        free_list(list->next);
-        free(list);
-    }
-}
-
-/* Returns a new list that passes the predicate p */
-//list_t filter(bool (*p)(void *data), list_t list) {
-//    /* Nested functions are not ISO C */
-//    __extension__
-//    void *f(void *data, void *res) {
-//        return p(data) ? push(res, data) : res;
-//    };
-//    return foldr(f, NULL, list);
-//}
-
-/* Add one to accumulator */
-static void *plus_one(void *acc, void *data) {
-    (void) data; /* data is unused */
-    return (void *)((long)acc + 1);
-}
-
-/* An abstraction of recursively traversing a list from right to left */
-static void *foldr(void *(*f)(void *data, void *res), void *res, list_t list) {
-    return !list
-        ? res
-        : f(list->data, foldr(f, res, list->next));
-}
-
-/* An abstraction of recursively traversing a list from left to right */
-static void *foldl(void *(*f)(void *acc, void *data), void *acc, list_t list) {
-    return !list
-        ? acc
-        : foldl(f, f(acc, list->data), list->next);
 }

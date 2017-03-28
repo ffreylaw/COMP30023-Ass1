@@ -11,6 +11,7 @@
  */
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <getopt.h>
 #include <string.h>
 #include <ctype.h>
@@ -29,7 +30,7 @@ typedef struct {
 static options_t load_options(int argc, char *argv[]);
 static void usage_exit(char *exe);
 char *string_lower(char *str);
-int string_digit(const char *str);
+bool string_isdigit(const char *str);
 
 /* The main function */
 int main(int argc, char *argv[]) {
@@ -38,6 +39,7 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
+/* Load options from command line arguments */
 static options_t load_options(int argc, char *argv[]) {
     extern char *optarg;
     extern int optind;
@@ -66,7 +68,7 @@ static options_t load_options(int argc, char *argv[]) {
             }
             break;
         case 'm':
-            if (string_digit(optarg)) {
+            if (string_isdigit(optarg)) {
                 opts.memsize = atoi(optarg);
             } else {
                 fprintf(stderr, "Invalid memsize. Please enter integer only\n");
@@ -74,7 +76,7 @@ static options_t load_options(int argc, char *argv[]) {
             }
             break;
         case 'q':
-            if (string_digit(optarg)) {
+            if (string_isdigit(optarg)) {
                 opts.quantum = atoi(optarg);
             } else {
                 fprintf(stderr, "Invalid quantum. Please enter integer only\n");
@@ -93,6 +95,7 @@ static options_t load_options(int argc, char *argv[]) {
     return opts;
 }
 
+/* Print error message and exit */
 static void usage_exit(char *exe) {
     fprintf(stderr, "Usage: %s (-f filename | -a algorithm_name | -m memsize | -q quantum) \n", exe);
     fprintf(stderr, "-f     the name of the process size file\n");
@@ -102,6 +105,7 @@ static void usage_exit(char *exe) {
     exit(EXIT_FAILURE);
 }
 
+/* Convert string to lowercase */
 char *string_lower(char *str) {
     unsigned char *p = (unsigned char *)str;
     while (*p) {
@@ -111,9 +115,10 @@ char *string_lower(char *str) {
     return str;
 }
 
-int string_digit(const char *str) {
+/* Check string is digit */
+bool string_isdigit(const char *str) {
     while (*str) {
-        if (!isdigit(*str++)) return 0;
+        if (!isdigit(*str++)) return false;
     }
-    return 1;
+    return true;
 }

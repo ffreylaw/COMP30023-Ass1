@@ -18,7 +18,7 @@ CFLAGS =	-Wall -Wextra -std=gnu99
 
 SRC =		main.c list.c simulation.c
 OBJ =		main.o list.o simulation.o
-EXE = 		main
+EXE = 		swap
 
 ## Top level target is executable.
 $(EXE):	$(OBJ)
