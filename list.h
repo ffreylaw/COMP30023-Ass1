@@ -47,10 +47,7 @@ void insert_at_tail(void*, list_t**);
 bool insert_before(void*, void*, list_t**);
 
 /* Pop the head off the list */
-void *pop_head(list_t**);
-
-/* Pop the tail off the list */
-void *pop_tail(list_t**);
+void *pop(list_t**);
 
 void *del(void*, list_t**);
 

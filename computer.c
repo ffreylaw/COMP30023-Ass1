@@ -169,15 +169,15 @@ void round_robin(int event) {
         case E2:
             computer->cpu->running_time = 0;
             computer->cpu->running_process = NULL;
-            process_t *process = pop_head(&queue);
+            process_t *process = pop(&queue);
             insert_at_tail(process, &queue);
             if (queue->head != NULL) {
                 computer->cpu->running_process = (process_t*) queue->head->data;
             }
             break;
         case E3:
-            computer->cpu->running_time = 0;
             computer->cpu->num_completed_process += 1;
+            computer->cpu->running_time = 0;
             computer->cpu->running_process = NULL;
             if (queue->head != NULL) {
                 computer->cpu->running_process = (process_t*) queue->head->data;

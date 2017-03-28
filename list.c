@@ -78,27 +78,21 @@ void insert_at_tail(void *data, list_t **list) {
 }
 
 /* Pop the head off the list */
-void *pop_head(list_t **list) {
+void *pop(list_t **list) {
     if (!((*list)->head)) {
         return NULL;
     } else {
         void *data = (*list)->head->data;
+        // node_t *ptr = (*list)->head;
         /* Update list to point at the next element */
         (*list)->head = (*list)->head->next;
-        (*list)->tail = !((*list)->head) ? NULL : (*list)->tail;
-        return data;
-    }
-}
-
-/* Pop the tail off the list */
-void *pop_tail(list_t **list) {
-    if (!((*list)->tail)) {
-        return NULL;
-    } else {
-        void *data = (*list)->tail->data;
-        /* Update list to point at the previous element */
-        (*list)->tail = (*list)->tail->prev;
-        (*list)->head = !((*list)->tail) ? NULL : (*list)->head;
+        if ((*list)->head != NULL) {
+            (*list)->head->prev = NULL;
+        } else {
+            (*list)->tail = NULL;
+        }
+        /* Free the memory allocated to the list node */
+        // free(ptr);
         return data;
     }
 }

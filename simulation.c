@@ -34,6 +34,10 @@ void simulate(char *filename, char *algorithm_name, int memsize, int quantum) {
         if (event) {
             (computer->cpu->swap)();
             (computer->cpu->schedule)(event);
+            // printf("queue:\n");
+            // print_list(print_process, stdout, computer->cpu->process_queue->head);
+            // printf("event: %d\nrunning: %d\nsegments:\n", computer->cpu->running_process->process_id, event);
+            // print_list(print_segment, stdout, computer->memory->segment_list->head);
         }
         (*time())++;
     }
@@ -82,9 +86,8 @@ int run_cpu() {
 
         if (computer->cpu->running_process->job_time == 0) {
             event = E3;
-            process_t *process = pop_head(&(computer->cpu->process_queue));
+            process_t *process = pop(&(computer->cpu->process_queue));
             del_memory_process(process);
-            del(process, &(computer->cpu->process_queue));
         } else if (computer->cpu->running_time == computer->cpu->quantum) {
             event = E2;
         }
@@ -96,14 +99,16 @@ int run_cpu() {
 /* Add created process to disk */
 void create_process(list_t **all_processes) {
     computer_t *computer = get_instance();
-    disk_t *disk = computer->disk;
 
-    if ((*all_processes)->head != NULL) {
-        process_t *process = (process_t*) (*all_processes)->head->data;
+    node_t *process_node = (*all_processes)->head;
+
+    while (process_node != NULL) {
+        process_t *process = (process_t*) process_node->data;
         if (process->time_created == *time()) {
-            process_t *data = pop_head(all_processes);
-            insert_at_tail(data, &(disk->process_list));
+            process_t *data = pop(all_processes);
+            insert_at_tail(data, &(computer->disk->process_list));
         }
+        process_node = process_node->next;
     }
 }
 
