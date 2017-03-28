@@ -16,6 +16,7 @@
 #include <math.h>
 
 #include "simulation.h"
+#include "computer.h"
 #include "list.h"
 
 /* Simulate the memory management task */
@@ -23,9 +24,6 @@ void simulate(char *filename, char *algorithm_name, int memsize, int quantum) {
     initialize_computer(algorithm_name, memsize, quantum);
 
     computer_t *computer = get_instance();
-    cpu_t *cpu = computer->cpu;
-    disk_t *disk = computer->disk;
-    memory_t *memory = computer->memory;
 
     list_t *all_processes = load_processes(filename);
     int num_processes = len(all_processes);
@@ -34,9 +32,22 @@ void simulate(char *filename, char *algorithm_name, int memsize, int quantum) {
     // print_list(print_segment, stdout, memory->segment_list->head);
     // print_list(print_hole, stdout, memory->free_list->head);
 
-    while (cpu->num_completed_process < num_processes) {
-        step_create_process(&all_processes);
-        (cpu->swap)();
+    while (computer->cpu->num_completed_process < num_processes) {
+        create_process(&all_processes);
+        int event = run_cpu();
+        switch (event) {
+            case E1:
+                (computer->cpu->swap)();
+                break;
+            case E2:
+                (computer->cpu->swap)();
+                break;
+            case E3:
+                (computer->cpu->swap)();
+                break;
+            default: break;
+        }
+
         if (!(all_processes->head)) {
             break;
         }
@@ -50,8 +61,34 @@ void test_driver() {
 
 }
 
+/* Run the cpu and return an event */
+int run_cpu() {
+    computer_t *computer = get_instance();
+    cpu_t *cpu = computer->cpu;
+    memory_t *memory = computer->memory;
+
+    int event = -1;
+
+    node_t *segment_node = memory->segment_list->head;
+    bool empty_flag = true;
+    while (segment_node != NULL) {
+        segment_t *segment = (segment_t*) segment_node->data;
+        if (segment->process != NULL) {
+            empty_flag = false;
+            break;
+        }
+        segment_node = segment_node->next;
+    }
+    if (empty_flag) {
+        event = E1;
+    }
+
+    return 1;
+
+}
+
 /* Add created process to disk */
-void step_create_process(list_t **all_processes) {
+void create_process(list_t **all_processes) {
     computer_t *computer = get_instance();
     disk_t *disk = computer->disk;
 
@@ -93,106 +130,35 @@ list_t *load_processes(char *filename) {
         process->job_time = job_time;
         process->time_placed_on_disk = time_created;
         process->time_placed_on_memory = -1;
-        process->is_running = 0;
-        process->running_time = 0;
         insert_at_tail(process, &process_list);
     }
 
     return process_list;
 }
 
-/* Get instance from the singleton */
-computer_t* get_instance() {
-    static computer_t *instance = NULL;
-    if (instance == NULL) {
-        instance = (computer_t*)malloc(sizeof(computer_t));
-        instance->cpu = NULL;
-        instance->disk = NULL;
-        instance->memory = NULL;
-    }
-    return instance;
-}
-
-/* Initialize the computer */
-void initialize_computer(char *algorithm_name, int memsize, int quantum) {
-    computer_t *computer = get_instance();
-    computer->cpu = (cpu_t*)malloc(sizeof(cpu_t));
-    computer->disk = initialize_disk();
-    computer->memory = initialize_memory(memsize);
-    if (!strcmp(algorithm_name, "first")) {
-        computer->cpu->swap = first_fit;
-    } else if (!strcmp(algorithm_name, "best")) {
-        computer->cpu->swap = best_fit;
-    } else if (!strcmp(algorithm_name, "worst")) {
-        computer->cpu->swap = worst_fit;
-    }
-    computer->cpu->quantum = quantum;
-    computer->cpu->num_completed_process = 0;
-}
-
-/* Initialize a disk */
-disk_t *initialize_disk() {
-    disk_t *disk = (disk_t*)malloc(sizeof(disk_t));
-    disk->process_list = NULL;
-    return disk;
-}
-
-/* Initialize a memory with given memsize */
-memory_t *initialize_memory(int memsize) {
-    memory_t *memory = (memory_t*)malloc(sizeof(memory_t));
-    memory->memsize = memsize;
-    memory->memusage = 0;
-    memory->num_processes = 0;
-    memory->num_holes = 1;
-    memory->segment_list = NULL;
-    memory->free_list = NULL;
-
-    segment_t *segment = (segment_t*)malloc(sizeof(segment_t));
-    segment->process = NULL;
-    hole_t *hole = (hole_t*)malloc(sizeof(hole_t));
-    hole->address = 0;
-    hole->memory_size = memsize;
-    segment->hole = hole;
-
-    insert_at_tail(segment, &(memory->segment_list));
-    insert_at_tail(hole, &(memory->free_list));
-
-    return memory;
-}
-
 /* First fit algorithm implementation */
 void first_fit() {
     computer_t *computer = get_instance();
-    cpu_t *cpu = computer->cpu;
-    disk_t *disk = computer->disk;
-    memory_t *memory = computer->memory;
-    if (disk->process_list->head != NULL) {
-        process_t *process = (process_t*) disk->process_list->head->data;
-        node_t *segment_node = memory->segment_list->head;
+
+    if (computer->disk->process_list->head != NULL) {
+        process_t *process = get_process();
+        node_t *segment_node = computer->memory->segment_list->head;
+        bool has_enough_hole = false;
         while (segment_node != NULL) {
             segment_t *segment = (segment_t*) segment_node->data;
             if (segment->hole != NULL) {
                 if (process->memory_size <= segment->hole->memory_size) {
-                    segment->hole->memory_size -= process->memory_size;
-                    segment_t *process_segment = (segment_t*)malloc(sizeof(segment_t));
-                    process_segment->hole = NULL;
-                    process_segment->process = pop_head(&(disk->process_list));
-                    insert_at_head(process_segment, &(memory->segment_list));
-                    calculate_memusage();
-                    memory->num_processes += 1;
-                    fprintf(stdout, "time %d, %d loaded, numprocesses=%d, numholes=%d, memusage=%d%%\n",
-                            *time(),
-                            process_segment->process->process_id,
-                            memory->num_processes,
-                            memory->num_holes,
-                            memory->memusage);
-                    // printf("segment list: \n");
-                    // print_list(print_segment, stdout, memory->segment_list);
+                    has_enough_hole = true;
+                    swap_in(process, segment->hole);
                     break;
                 }
             }
             segment_node = segment_node->next;
         }
+        if (!has_enough_hole) {
+
+        }
+
     } else {
         return;
     }
@@ -209,54 +175,65 @@ void worst_fit() {
 }
 
 /* Schedule function */
-void schedule() {
+void round_robin() {
 
 }
 
-void calculate_memusage() {
+process_t *get_process() {
     computer_t *computer = get_instance();
-    memory_t *memory = computer->memory;
-    node_t *segment_node = memory->segment_list->head;
 
-    int total_process_memsize = 0;
+    node_t *process_node = computer->disk->process_list->head;
 
-    while (segment_node != NULL) {
-        segment_t *segment = (segment_t*) segment_node->data;
-        if (segment->process != NULL) {
-            total_process_memsize += segment->process->memory_size;
+    process_t *process = (process_t*) process_node->data;
+    int longest_time = *time() - process->time_placed_on_disk;
+    int highest_priority = process->process_id;
+
+    process_node = process_node->next;
+
+    while (process_node != NULL) {
+        process_t *data = (process_t*) process_node->data;
+        if ((*time() - data->time_placed_on_disk) > longest_time) {
+            process = data;
+            longest_time = *time() - data->time_placed_on_disk;
+            highest_priority = data->process_id;
+        } else if ((*time() - data->time_placed_on_disk) == longest_time) {
+            if (data->process_id < highest_priority) {
+                process = data;
+                longest_time = *time() - data->time_placed_on_disk;
+                highest_priority = data->process_id;
+            }
         }
-        segment_node = segment_node->next;
+        process_node = process_node->next;
     }
 
-    memory->memusage = (int)ceil(100.0*total_process_memsize/memory->memsize);
+    return process;
 }
 
-/* Print a process */
-void print_process(FILE *f, void *data) {
-    process_t *process = (process_t*) data;
-    fprintf(f, "process %p: {time created: %d, process id: %d, memory size: %d, job time: %d}\n",
-                process,
-                process->time_created,
-                process->process_id,
-                process->memory_size,
-                process->job_time);
+void swap_in(process_t *process, hole_t *hole) {
+    computer_t *computer = get_instance();
+
+    hole->memory_size -= process->memory_size;
+
+    segment_t *process_segment = (segment_t*)malloc(sizeof(segment_t));
+    process_segment->hole = NULL;
+    process_segment->process = pop_head(&(computer->disk->process_list));
+    process_segment->process->time_placed_on_disk = -1;
+    process_segment->process->time_placed_on_memory = *time();
+    insert_at_head(process_segment, &(computer->memory->segment_list));
+
+    calculate_memusage();
+    computer->memory->num_processes += 1;
+
+    fprintf(stdout, "time %d, %d loaded, numprocesses=%d, numholes=%d, memusage=%d%%\n",
+            *time(),
+            process_segment->process->process_id,
+            computer->memory->num_processes,
+            computer->memory->num_holes,
+            computer->memory->memusage);
+    // printf("segment list: \n");
+    // print_list(print_segment, stdout, computer->memory->segment_list->head);
 }
 
-/* Print a hole */
-void print_hole(FILE *f, void *data) {
-    hole_t *hole = (hole_t*) data;
-    fprintf(f, "hole %p: {address: %d, memory size: %d}\n",
-                hole,
-                hole->address,
-                hole->memory_size);
-}
+void swap_out() {
 
-/* Print a segment */
-void print_segment(FILE *f, void *data) {
-    segment_t *segment = (segment_t*) data;
-    if (segment->process != NULL) {
-        print_process(f, segment->process);
-    } else {
-        print_hole(f, segment->hole);
-    }
 }

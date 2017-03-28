@@ -112,6 +112,10 @@ void *pop_tail(list_t **list) {
     }
 }
 
+void *delete(void *aim, list_t **list) {
+    return NULL;
+}
+
 /* Print list to file by applying print to each node that is not NULL */
 void print_list(void (*print)(FILE *f, void *data), FILE *f, node_t *root) {
     if (root) {
