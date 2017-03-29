@@ -167,15 +167,18 @@ void round_robin(int event) {
             }
             break;
         case E2:
+            if (((process_t*)queue->head->data) == computer->cpu->running_process) {
+                process_t *process_e2 = pop(&queue);
+                insert_at_tail(process_e2, &queue);
+            }
             computer->cpu->running_time = 0;
             computer->cpu->running_process = NULL;
-            process_t *process = pop(&queue);
-            insert_at_tail(process, &queue);
             if (queue->head != NULL) {
                 computer->cpu->running_process = (process_t*) queue->head->data;
             }
             break;
         case E3:
+            pop(&(computer->cpu->process_queue));
             computer->cpu->num_completed_process += 1;
             computer->cpu->running_time = 0;
             computer->cpu->running_process = NULL;
@@ -283,6 +286,12 @@ void merge_holes(segment_t *segment_hole) {
 
     hole_t *hole = (hole_t*)malloc(sizeof(hole_t));
     hole->memory_size = segment_hole->hole->memory_size;
+    if (hole->memory_size == 0) {
+        del(segment_hole, &(computer->memory->segment_list));
+        computer->memory->num_holes -= 1;
+        return;
+    }
+
     segment_t *new_segment_hole = (segment_t*)malloc(sizeof(segment_t));
     new_segment_hole->process = NULL;
     new_segment_hole->hole = hole;
@@ -328,9 +337,10 @@ void swap_in(process_t *process, segment_t *segment_hole) {
     segment_process->process->time_placed_on_memory = *time();
     insert_before(segment_hole, segment_process, &(computer->memory->segment_list));
     insert_at_tail(segment_process->process, &(computer->cpu->process_queue));
-
-    calculate_memusage();
     computer->memory->num_processes += 1;
+
+    merge_holes(segment_hole);
+    calculate_memusage();
 
     fprintf(stdout, "time %d, %d loaded, numprocesses=%d, numholes=%d, memusage=%d%%\n",
             *time(),

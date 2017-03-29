@@ -30,15 +30,17 @@ void simulate(char *filename, char *algorithm_name, int memsize, int quantum) {
 
     while (computer->cpu->num_completed_process < num_processes) {
         create_process(&all_processes);
-        int event = run_cpu();
+        int event = observe_event();
         if (event) {
             (computer->cpu->swap)();
             (computer->cpu->schedule)(event);
             // printf("queue:\n");
             // print_list(print_process, stdout, computer->cpu->process_queue->head);
-            // printf("event: %d\nrunning: %d\nsegments:\n", computer->cpu->running_process->process_id, event);
+            // printf("event: %d\nrunning: %d\nsegments:\n", event, computer->cpu->running_process->process_id);
             // print_list(print_segment, stdout, computer->memory->segment_list->head);
+            // printf("------\n\n");
         }
+        cpu_step();
         (*time())++;
     }
 
@@ -55,8 +57,8 @@ int *time() {
     return time;
 }
 
-/* Run the cpu and return an event */
-int run_cpu() {
+/* Observe and return an event */
+int observe_event() {
     computer_t *computer = get_instance();
 
     int event = NONE;
@@ -78,22 +80,29 @@ int run_cpu() {
 
     /* E2, E3 */
     if (computer->cpu->running_process != NULL) {
-        if (computer->cpu->running_time < computer->cpu->quantum
-            && computer->cpu->running_process->job_time != 0) {
-            computer->cpu->running_time += 1;
-            computer->cpu->running_process->job_time -= 1;
-        }
-
         if (computer->cpu->running_process->job_time == 0) {
             event = E3;
-            process_t *process = pop(&(computer->cpu->process_queue));
-            del_memory_process(process);
         } else if (computer->cpu->running_time == computer->cpu->quantum) {
             event = E2;
         }
     }
 
     return event;
+}
+
+void cpu_step() {
+    computer_t *computer = get_instance();
+
+    if (computer->cpu->running_process != NULL) {
+        if (computer->cpu->running_time < computer->cpu->quantum
+            && computer->cpu->running_process->job_time != 0) {
+            computer->cpu->running_time += 1;
+            computer->cpu->running_process->job_time -= 1;
+        }
+        if (computer->cpu->running_process->job_time == 0) {
+            del_memory_process(computer->cpu->running_process);
+        }
+    }
 }
 
 /* Add created process to disk */

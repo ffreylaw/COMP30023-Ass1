@@ -34,8 +34,11 @@ void simulate(char*, char*, int, int);
 /* Get clock time from the singleton */
 int *time();
 
-/* Run the cpu and return an event */
-int run_cpu();
+/* Observe and return an event */
+int observe_event();
+
+/* Step in CPU */
+void cpu_step();
 
 /* Add created process to disk */
 void create_process(list_t**);
