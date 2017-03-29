@@ -34,11 +34,16 @@ void simulate(char *filename, char *algorithm_name, int memsize, int quantum) {
         if (event) {
             (computer->cpu->swap)();
             (computer->cpu->schedule)(event);
-            // printf("queue:\n");
-            // print_list(print_process, stdout, computer->cpu->process_queue->head);
-            // printf("event: %d\nrunning: %d\nsegments:\n", event, computer->cpu->running_process->process_id);
-            // print_list(print_segment, stdout, computer->memory->segment_list->head);
-            // printf("------\n\n");
+
+            // /* DEBUG */
+            // if (computer->cpu->num_completed_process < num_processes) {
+            //     fprintf(stdout, "------------------------\nDEBUG\nqueue:\n");
+            //     print_list(print_process, stdout, computer->cpu->process_queue->head);
+            //     fprintf(stdout, "event: %d\nrunning: %d\nsegments:\n", event, computer->cpu->running_process->process_id);
+            //     print_list(print_segment, stdout, computer->memory->segment_list->head);
+            //     fprintf(stdout, "------------------------\n");
+            // }
+
         }
         cpu_step();
         (*time())++;
@@ -90,6 +95,7 @@ int observe_event() {
     return event;
 }
 
+/* Step in CPU */
 void cpu_step() {
     computer_t *computer = get_instance();
 
