@@ -34,22 +34,27 @@ computer_t* get_instance() {
 /* Initialize the computer */
 void initialize_computer(char *algorithm_name, int memsize, int quantum) {
     computer_t *computer = get_instance();
-    computer->cpu = (cpu_t*)malloc(sizeof(cpu_t));
+    computer->cpu = initialize_cpu(algorithm_name, quantum);
     computer->disk = initialize_disk();
     computer->memory = initialize_memory(memsize);
+}
+
+cpu_t *initialize_cpu(char *algorithm_name, int quantum) {
+    cpu_t *cpu = (cpu_t*)malloc(sizeof(cpu_t));
     if (!strcmp(algorithm_name, "first")) {
-        computer->cpu->swap = first_fit;
+        cpu->swap = first_fit;
     } else if (!strcmp(algorithm_name, "best")) {
-        computer->cpu->swap = best_fit;
+        cpu->swap = best_fit;
     } else if (!strcmp(algorithm_name, "worst")) {
-        computer->cpu->swap = worst_fit;
+        cpu->swap = worst_fit;
     }
-    computer->cpu->schedule = round_robin;
-    computer->cpu->quantum = quantum;
-    computer->cpu->process_queue = NULL;
-    computer->cpu->running_process = NULL;
-    computer->cpu->running_time = 0;
-    computer->cpu->num_completed_process = 0;
+    cpu->schedule = round_robin;
+    cpu->quantum = quantum;
+    cpu->process_queue = NULL;
+    cpu->running_process = NULL;
+    cpu->running_time = 0;
+    cpu->num_completed_process = 0;
+    return cpu;
 }
 
 /* Initialize a disk */

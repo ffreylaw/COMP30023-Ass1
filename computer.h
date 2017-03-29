@@ -75,6 +75,9 @@ computer_t* get_instance();
 /* Initialize the computer */
 void initialize_computer(char*, int, int);
 
+/* Initialize the CPU */
+cpu_t *initialize_cpu(char*, int);
+
 /* Initialize a disk */
 disk_t *initialize_disk();
 

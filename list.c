@@ -169,14 +169,6 @@ bool replace(void *aim, void *data, list_t **list) {
     return false;
 }
 
-/* Free the memory allocated to each list node */
-void free_list(node_t *root) {
-    if (root) {
-        free_list(root->next);
-        free(root);
-    }
-}
-
 /* Print list to file by applying print to each node that is not NULL */
 void print_list(void (*print)(FILE *f, void *data), FILE *f, node_t *root) {
     if (root) {
