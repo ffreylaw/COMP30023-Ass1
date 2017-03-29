@@ -49,8 +49,10 @@ bool insert_before(void*, void*, list_t**);
 /* Pop the head off the list */
 void *pop(list_t**);
 
+/* Delete node equals to aim */
 void *del(void*, list_t**);
 
+/* Replace node equals to aim */
 bool replace(void*, void*, list_t**);
 
 /* Print list to file by applying print to each node that is not NULL */

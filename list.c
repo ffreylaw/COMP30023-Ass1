@@ -119,6 +119,7 @@ bool insert_before(void *aim, void *data, list_t **list) {
     return false;
 }
 
+/* Delete node equals to aim */
 void *del(void *aim, list_t **list) {
     node_t *node = (*list)->head;
     while (node != NULL) {
@@ -142,6 +143,7 @@ void *del(void *aim, list_t **list) {
     return NULL;
 }
 
+/* Replace node equals to aim */
 bool replace(void *aim, void *data, list_t **list) {
     node_t *node = (*list)->head;
     while (node != NULL) {
