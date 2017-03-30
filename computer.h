@@ -59,7 +59,6 @@ typedef struct memory {
     int num_processes;
     int num_holes;
     list_t *segment_list;
-    list_t *free_list;
 } memory_t;
 
 /* Singleton struct for the computer */

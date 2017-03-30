@@ -9,6 +9,8 @@
  * algorithm.h
  *
  */
+ #ifndef ALGORITHM_H
+ #define ALGORITHM_H
 
  #include "computer.h"
 
@@ -32,3 +34,5 @@
 
  /* Merge holes in memory segments */
  void merge_holes(segment_t*);
+
+#endif

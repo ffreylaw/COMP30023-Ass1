@@ -73,7 +73,6 @@ memory_t *initialize_memory(int memsize) {
     memory->num_processes = 0;
     memory->num_holes = 1;
     memory->segment_list = NULL;
-    memory->free_list = NULL;
 
     segment_t *segment = (segment_t*)malloc(sizeof(segment_t));
     segment->process = NULL;
@@ -82,7 +81,6 @@ memory_t *initialize_memory(int memsize) {
     segment->hole = hole;
 
     insert_at_tail(segment, &(memory->segment_list));
-    insert_at_tail(hole, &(memory->free_list));
 
     return memory;
 }

@@ -14,7 +14,6 @@
 
 #include <stdbool.h>
 
-#include "computer.h"
 #include "list.h"
 
 /* Constants */
