@@ -22,21 +22,19 @@
 /* Simulate the memory management task */
 void simulate(char *filename, char *algorithm_name, int memsize, int quantum) {
     initialize_computer(algorithm_name, memsize, quantum);
-
     computer_t *computer = get_instance();
 
-    list_t *all_processes = load_processes(filename);
-    int num_processes = len(all_processes);
+    generator_t *generator = initialize_generator(filename);
 
-    while (computer->cpu->num_completed_process < num_processes) {
-        create_process(&all_processes);
+    while (computer->cpu->num_completed_process < generator->num_processes) {
+        generator_step(generator);
         int event = observe_event();
         if (event) {
             (computer->cpu->swap)();
             (computer->cpu->schedule)(event);
 
             // /* DEBUG */
-            // if (computer->cpu->num_completed_process < num_processes) {
+            // if (computer->cpu->num_completed_process < generator->num_processes) {
             //     fprintf(stdout, "------------------------\nDEBUG\nqueue:\n");
             //     print_list(print_process, stdout, computer->cpu->process_queue->head);
             //     fprintf(stdout, "event: %d\nrunning: %d\nsegments:\n", event, computer->cpu->running_process->process_id);
@@ -111,16 +109,16 @@ void cpu_step() {
     }
 }
 
-/* Add created process to disk */
-void create_process(list_t **all_processes) {
+/* Generate created process in disk */
+void generator_step(generator_t *generator) {
     computer_t *computer = get_instance();
 
-    node_t *process_node = (*all_processes)->head;
+    node_t *process_node = generator->all_processes->head;
 
     while (process_node != NULL) {
         process_t *process = (process_t*) process_node->data;
         if (process->time_created == *time()) {
-            process_t *data = pop(all_processes);
+            process_t *data = pop(&(generator->all_processes));
             insert_at_tail(data, &(computer->disk->process_list));
         }
         process_node = process_node->next;
@@ -150,4 +148,12 @@ list_t *load_processes(char *filename) {
     }
 
     return process_list;
+}
+
+/* Initialize a generator */
+generator_t *initialize_generator(char *filename) {
+    generator_t *generator = (generator_t*)malloc(sizeof(generator_t));
+    generator->all_processes = load_processes(filename);
+    generator->num_processes = len(generator->all_processes);
+    return generator;
 }

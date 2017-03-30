@@ -28,6 +28,12 @@ typedef enum {
     E3      = 3,  // A process that was running on the CPU has called exit and terminated.
 } event;
 
+/* Struct represents a generator to store all read processes from input */
+typedef struct generator {
+    list_t *all_processes;
+    int num_processes;
+} generator_t;
+
 /* Simulate the memory management task */
 void simulate(char*, char*, int, int);
 
@@ -40,10 +46,13 @@ int observe_event();
 /* Step in CPU */
 void cpu_step();
 
-/* Add created process to disk */
-void create_process(list_t**);
+/* Generate created process in disk */
+void generator_step(generator_t*);
 
 /* Load processes from given input file */
 list_t *load_processes(char*);
+
+/* Initialize a generator */
+generator_t *initialize_generator(char*);
 
 #endif
