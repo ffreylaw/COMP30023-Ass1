@@ -21,7 +21,7 @@
 #include "list.h"
 
 /* Get instance from the singleton */
-computer_t* get_instance() {
+computer_t* computer_get_instance() {
     static computer_t *instance = NULL;
     if (instance == NULL) {
         instance = (computer_t*)malloc(sizeof(computer_t));
@@ -33,14 +33,14 @@ computer_t* get_instance() {
 }
 
 /* Initialize the computer */
-void initialize_computer(char *algorithm_name, int memsize, int quantum) {
-    computer_t *computer = get_instance();
-    computer->cpu = initialize_cpu(algorithm_name, quantum);
-    computer->disk = initialize_disk();
-    computer->memory = initialize_memory(memsize);
+void computer_init(char *algorithm_name, int memsize, int quantum) {
+    computer_t *computer = computer_get_instance();
+    computer->cpu = cpu_init(algorithm_name, quantum);
+    computer->disk = disk_init();
+    computer->memory = memory_init(memsize);
 }
 
-cpu_t *initialize_cpu(char *algorithm_name, int quantum) {
+cpu_t *cpu_init(char *algorithm_name, int quantum) {
     cpu_t *cpu = (cpu_t*)malloc(sizeof(cpu_t));
     if (!strcmp(algorithm_name, "first")) {
         cpu->swap = first_fit;
@@ -59,14 +59,14 @@ cpu_t *initialize_cpu(char *algorithm_name, int quantum) {
 }
 
 /* Initialize a disk */
-disk_t *initialize_disk() {
+disk_t *disk_init() {
     disk_t *disk = (disk_t*)malloc(sizeof(disk_t));
     disk->process_list = NULL;
     return disk;
 }
 
 /* Initialize a memory with given memsize */
-memory_t *initialize_memory(int memsize) {
+memory_t *memory_init(int memsize) {
     memory_t *memory = (memory_t*)malloc(sizeof(memory_t));
     memory->memsize = memsize;
     memory->memusage = 0;
@@ -80,14 +80,14 @@ memory_t *initialize_memory(int memsize) {
     hole->memory_size = memsize;
     segment->hole = hole;
 
-    insert_at_tail(segment, &(memory->segment_list));
+    list_add(segment, &(memory->segment_list));
 
     return memory;
 }
 
 /* Calculate memory usage */
-void calculate_memusage() {
-    computer_t *computer = get_instance();
+void memory_calculate_memusage() {
+    computer_t *computer = computer_get_instance();
 
     node_t *segment_node = computer->memory->segment_list->head;
 
@@ -105,8 +105,8 @@ void calculate_memusage() {
 }
 
 /* Get a process from disk */
-process_t *get_disk_process() {
-    computer_t *computer = get_instance();
+process_t *disk_get_process() {
+    computer_t *computer = computer_get_instance();
 
     node_t *process_node = computer->disk->process_list->head;
 
@@ -135,8 +135,8 @@ process_t *get_disk_process() {
 }
 
 /* Get a process from memory segments */
-process_t *get_memory_process() {
-    computer_t *computer = get_instance();
+process_t *memory_get_process() {
+    computer_t *computer = computer_get_instance();
 
     node_t *segment_node = computer->memory->segment_list->head;
 
@@ -158,14 +158,14 @@ process_t *get_memory_process() {
 }
 
 /* Delete a process from disk */
-process_t *del_disk_process(process_t *process) {
-    computer_t *computer = get_instance();
-    return del(process, &(computer->disk->process_list));
+process_t *disk_del_process(process_t *process) {
+    computer_t *computer = computer_get_instance();
+    return list_del(process, &(computer->disk->process_list));
 }
 
 /* Delete a process from memory segments */
-process_t *del_memory_process(process_t *process) {
-    computer_t *computer = get_instance();
+process_t *memory_del_process(process_t *process) {
+    computer_t *computer = computer_get_instance();
 
     hole_t *hole = (hole_t*)malloc(sizeof(hole_t));
     hole->memory_size = process->memory_size;
@@ -187,13 +187,13 @@ process_t *del_memory_process(process_t *process) {
 
     computer->memory->num_processes -= 1;
     computer->memory->num_holes += 1;
-    replace(segment_process, segment_hole, &(computer->memory->segment_list));
+    list_rplc(segment_process, segment_hole, &(computer->memory->segment_list));
     merge_holes(segment_hole);
     return process;
 }
 
 /* Print a process */
-void print_process(FILE *f, void *data) {
+void process_print(FILE *f, void *data) {
     process_t *process = (process_t*) data;
     fprintf(f, "process %p: {time created: %d, process id: %d, memory size: %d, job time: %d, time placed on disk: %d, time placed on memory: %d}\n",
                 process,
@@ -206,7 +206,7 @@ void print_process(FILE *f, void *data) {
 }
 
 /* Print a hole */
-void print_hole(FILE *f, void *data) {
+void hole_print(FILE *f, void *data) {
     hole_t *hole = (hole_t*) data;
     fprintf(f, "hole %p: {memory size: %d}\n",
                 hole,
@@ -214,11 +214,11 @@ void print_hole(FILE *f, void *data) {
 }
 
 /* Print a segment */
-void print_segment(FILE *f, void *data) {
+void segment_print(FILE *f, void *data) {
     segment_t *segment = (segment_t*) data;
     if (segment->process != NULL) {
-        print_process(f, segment->process);
+        process_print(f, segment->process);
     } else {
-        print_hole(f, segment->hole);
+        hole_print(f, segment->hole);
     }
 }

@@ -21,10 +21,10 @@
 
 /* Simulate the memory management task */
 void simulate(char *filename, char *algorithm_name, int memsize, int quantum) {
-    initialize_computer(algorithm_name, memsize, quantum);
-    computer_t *computer = get_instance();
+    computer_init(algorithm_name, memsize, quantum);
+    computer_t *computer = computer_get_instance();
 
-    generator_t *generator = initialize_generator(filename);
+    generator_t *generator = generator_init(filename);
 
     while (computer->cpu->num_completed_process < generator->num_processes) {
         generator_step(generator);
@@ -36,9 +36,9 @@ void simulate(char *filename, char *algorithm_name, int memsize, int quantum) {
             // /* DEBUG */
             // if (computer->cpu->num_completed_process < generator->num_processes) {
             //     fprintf(stdout, "------------------------\nDEBUG\nqueue:\n");
-            //     print_list(print_process, stdout, computer->cpu->process_queue->head);
+            //     list_print(process_print, stdout, computer->cpu->process_queue->head);
             //     fprintf(stdout, "event: %d\nrunning: %d\nsegments:\n", event, computer->cpu->running_process->process_id);
-            //     print_list(print_segment, stdout, computer->memory->segment_list->head);
+            //     list_print(segment_print, stdout, computer->memory->segment_list->head);
             //     fprintf(stdout, "------------------------\n");
             // }
 
@@ -62,7 +62,7 @@ int *time() {
 
 /* Observe and return an event */
 int observe_event() {
-    computer_t *computer = get_instance();
+    computer_t *computer = computer_get_instance();
 
     int event = NONE;
 
@@ -95,7 +95,7 @@ int observe_event() {
 
 /* Step in CPU */
 void cpu_step() {
-    computer_t *computer = get_instance();
+    computer_t *computer = computer_get_instance();
 
     if (computer->cpu->running_process != NULL) {
         if (computer->cpu->running_time < computer->cpu->quantum
@@ -104,22 +104,22 @@ void cpu_step() {
             computer->cpu->running_process->job_time -= 1;
         }
         if (computer->cpu->running_process->job_time == 0) {
-            del_memory_process(computer->cpu->running_process);
+            memory_del_process(computer->cpu->running_process);
         }
     }
 }
 
 /* Generate created process in disk */
 void generator_step(generator_t *generator) {
-    computer_t *computer = get_instance();
+    computer_t *computer = computer_get_instance();
 
     node_t *process_node = generator->all_processes->head;
 
     while (process_node != NULL) {
         process_t *process = (process_t*) process_node->data;
         if (process->time_created == *time()) {
-            process_t *data = pop(&(generator->all_processes));
-            insert_at_tail(data, &(computer->disk->process_list));
+            process_t *data = list_pop(&(generator->all_processes));
+            list_add(data, &(computer->disk->process_list));
         }
         process_node = process_node->next;
     }
@@ -144,16 +144,16 @@ list_t *load_processes(char *filename) {
         process->job_time = job_time;
         process->time_placed_on_disk = time_created;
         process->time_placed_on_memory = -1;
-        insert_at_tail(process, &process_list);
+        list_add(process, &process_list);
     }
 
     return process_list;
 }
 
 /* Initialize a generator */
-generator_t *initialize_generator(char *filename) {
+generator_t *generator_init(char *filename) {
     generator_t *generator = (generator_t*)malloc(sizeof(generator_t));
     generator->all_processes = load_processes(filename);
-    generator->num_processes = len(generator->all_processes);
+    generator->num_processes = list_len(generator->all_processes);
     return generator;
 }

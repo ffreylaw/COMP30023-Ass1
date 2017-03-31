@@ -69,42 +69,42 @@ typedef struct computer {
 } computer_t;
 
 /* Get instance from the singleton */
-computer_t* get_instance();
+computer_t* computer_get_instance();
 
 /* Initialize the computer */
-void initialize_computer(char*, int, int);
+void computer_init(char*, int, int);
 
 /* Initialize the CPU */
-cpu_t *initialize_cpu(char*, int);
+cpu_t *cpu_init(char*, int);
 
 /* Initialize a disk */
-disk_t *initialize_disk();
+disk_t *disk_init();
 
 /* Initialize a memory with given memsize */
-memory_t *initialize_memory(int);
+memory_t *memory_init(int);
 
 /* Calculate memory usage */
-void calculate_memusage();
+void memory_calculate_memusage();
 
 /* Get a process from disk */
-process_t *get_disk_process();
+process_t *disk_get_process();
 
 /* Get a process from memory segments */
-process_t *get_memory_process();
+process_t *memory_get_process();
 
 /* Delete a process from disk */
-process_t *del_disk_process(process_t*);
+process_t *disk_del_process(process_t*);
 
 /* Delete a process from memory segments */
-process_t *del_memory_process(process_t*);
+process_t *memory_del_process(process_t*);
 
 /* Print a process */
-void print_process(FILE*, void*);
+void process_print(FILE*, void*);
 
 /* Print a hole */
-void print_hole(FILE *f, void *data);
+void hole_print(FILE *f, void *data);
 
 /* Print a segment */
-void print_segment(FILE *f, void *data);
+void segment_print(FILE *f, void *data);
 
 #endif

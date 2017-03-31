@@ -52,6 +52,6 @@ void generator_step(generator_t*);
 list_t *load_processes(char*);
 
 /* Initialize a generator */
-generator_t *initialize_generator(char*);
+generator_t *generator_init(char*);
 
 #endif

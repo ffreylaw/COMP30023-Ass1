@@ -29,33 +29,30 @@ typedef struct list {
 } list_t;
 
 /* Create a new list */
-list_t *create_list();
+list_t *list_init();
 
 /* Create a new node */
-node_t *create_node(void*);
+node_t *list_create_node(void*);
 
 /* Return the length of the list */
-int len(list_t *list);
+int list_len(list_t *list);
 
-/* Inserts data into the head of list */
-void insert_at_head(void*, list_t**);
+/* Add data into the tail of list */
+void list_add(void*, list_t**);
 
-/* Inserts data into the tail of list */
-void insert_at_tail(void*, list_t**);
-
-/* Inserts data before aim */
-bool insert_before(void*, void*, list_t**);
+/* Insert data before aim */
+bool list_insert(void*, void*, list_t**);
 
 /* Pop the head off the list */
-void *pop(list_t**);
+void *list_pop(list_t**);
 
 /* Delete node equals to aim */
-void *del(void*, list_t**);
+void *list_del(void*, list_t**);
 
 /* Replace node equals to aim */
-bool replace(void*, void*, list_t**);
+bool list_rplc(void*, void*, list_t**);
 
 /* Print list to file by applying print to each node that is not NULL */
-void print_list(void (*)(FILE*, void*), FILE*, node_t*);
+void list_print(void (*)(FILE*, void*), FILE*, node_t*);
 
 #endif

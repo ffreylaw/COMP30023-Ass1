@@ -19,10 +19,10 @@
 
 /* Swap function - First fit algorithm */
 void first_fit() {
-    computer_t *computer = get_instance();
+    computer_t *computer = computer_get_instance();
 
     if (computer->disk->process_list->head != NULL) {
-        process_t *process = get_disk_process();
+        process_t *process = disk_get_process();
         node_t *segment_node = computer->memory->segment_list->head;
         bool has_enough_hole = false;
         while (segment_node != NULL) {
@@ -58,10 +58,10 @@ void first_fit() {
 
 /* Swap function - Best fit algorithm */
 void best_fit() {
-    computer_t *computer = get_instance();
+    computer_t *computer = computer_get_instance();
 
     if (computer->disk->process_list->head != NULL) {
-        process_t *process = get_disk_process();
+        process_t *process = disk_get_process();
         bool has_enough_hole = false;
         node_t *segment_node = computer->memory->segment_list->head;
         segment_t *smallest_hole = NULL;
@@ -109,10 +109,10 @@ void best_fit() {
 
 /* Swap function - Worst fit algorithm */
 void worst_fit() {
-    computer_t *computer = get_instance();
+    computer_t *computer = computer_get_instance();
 
     if (computer->disk->process_list->head != NULL) {
-        process_t *process = get_disk_process();
+        process_t *process = disk_get_process();
         bool has_enough_hole = false;
         node_t *segment_node = computer->memory->segment_list->head;
         segment_t *largest_hole = NULL;
@@ -156,7 +156,7 @@ void worst_fit() {
 
 /* Schedule function - Round Robin */
 void round_robin(int event) {
-    computer_t *computer = get_instance();
+    computer_t *computer = computer_get_instance();
 
     list_t *queue = computer->cpu->process_queue;
 
@@ -169,8 +169,8 @@ void round_robin(int event) {
             break;
         case E2:
             if (((process_t*)queue->head->data) == computer->cpu->running_process) {
-                process_t *process_e2 = pop(&queue);
-                insert_at_tail(process_e2, &queue);
+                process_t *process_e2 = list_pop(&queue);
+                list_add(process_e2, &queue);
             }
             computer->cpu->running_time = 0;
             computer->cpu->running_process = NULL;
@@ -179,7 +179,7 @@ void round_robin(int event) {
             }
             break;
         case E3:
-            pop(&(computer->cpu->process_queue));
+            list_pop(&(computer->cpu->process_queue));
             computer->cpu->num_completed_process += 1;
             computer->cpu->running_time = 0;
             computer->cpu->running_process = NULL;
@@ -193,21 +193,21 @@ void round_robin(int event) {
 
 /* Swap a process into memory */
 void swap_in(process_t *process, segment_t *segment_hole) {
-    computer_t *computer = get_instance();
+    computer_t *computer = computer_get_instance();
 
     segment_hole->hole->memory_size -= process->memory_size;
 
     segment_t *segment_process = (segment_t*)malloc(sizeof(segment_t));
     segment_process->hole = NULL;
-    segment_process->process = del_disk_process(process);
+    segment_process->process = disk_del_process(process);
     segment_process->process->time_placed_on_disk = -1;
     segment_process->process->time_placed_on_memory = *time();
-    insert_before(segment_hole, segment_process, &(computer->memory->segment_list));
-    insert_at_tail(segment_process->process, &(computer->cpu->process_queue));
+    list_insert(segment_hole, segment_process, &(computer->memory->segment_list));
+    list_add(segment_process->process, &(computer->cpu->process_queue));
     computer->memory->num_processes += 1;
 
     merge_holes(segment_hole);
-    calculate_memusage();
+    memory_calculate_memusage();
 
     fprintf(stdout, "time %d, %d loaded, numprocesses=%d, numholes=%d, memusage=%d%%\n",
             *time(),
@@ -219,26 +219,26 @@ void swap_in(process_t *process, segment_t *segment_hole) {
 
 /* Swap a process out of memory into disk */
 void swap_out() {
-    computer_t *computer = get_instance();
+    computer_t *computer = computer_get_instance();
 
-    process_t *process = get_memory_process();
-    del_memory_process(process);
-    del(process, &(computer->cpu->process_queue));
+    process_t *process = memory_get_process();
+    memory_del_process(process);
+    list_del(process, &(computer->cpu->process_queue));
     process->time_placed_on_disk = *time();
     process->time_placed_on_memory = -1;
-    insert_at_tail(process, &(computer->disk->process_list));
+    list_add(process, &(computer->disk->process_list));
 }
 
 /* Merge holes in memory segments */
 void merge_holes(segment_t *segment_hole) {
-    computer_t *computer = get_instance();
+    computer_t *computer = computer_get_instance();
 
     node_t *segment_node = computer->memory->segment_list->head;
 
     hole_t *hole = (hole_t*)malloc(sizeof(hole_t));
     hole->memory_size = segment_hole->hole->memory_size;
     if (hole->memory_size == 0) {
-        del(segment_hole, &(computer->memory->segment_list));
+        list_del(segment_hole, &(computer->memory->segment_list));
         computer->memory->num_holes -= 1;
         return;
     }
@@ -254,7 +254,7 @@ void merge_holes(segment_t *segment_hole) {
                 segment_t *prev_segment = (segment_t*)segment_node->prev->data;
                 if (prev_segment->hole != NULL) {
                     hole->memory_size += prev_segment->hole->memory_size;
-                    del(prev_segment, &(computer->memory->segment_list));
+                    list_del(prev_segment, &(computer->memory->segment_list));
                     computer->memory->num_holes -= 1;
                 }
             }
@@ -262,12 +262,12 @@ void merge_holes(segment_t *segment_hole) {
                 segment_t *next_segment = (segment_t*)segment_node->next->data;
                 if (next_segment->hole != NULL) {
                     hole->memory_size += next_segment->hole->memory_size;
-                    del(next_segment, &(computer->memory->segment_list));
+                    list_del(next_segment, &(computer->memory->segment_list));
                     computer->memory->num_holes -= 1;
                 }
             }
             if (hole->memory_size != segment_hole->hole->memory_size) {
-                replace(segment, new_segment_hole, &(computer->memory->segment_list));
+                list_rplc(segment, new_segment_hole, &(computer->memory->segment_list));
             }
             break;
         }

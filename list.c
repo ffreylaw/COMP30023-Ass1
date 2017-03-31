@@ -15,7 +15,7 @@
 #include "list.h"
 
 /* Create a new list */
-list_t *create_list() {
+list_t *list_init() {
     list_t *new_list = (list_t*)malloc(sizeof(list_t));
 	new_list->head = NULL;
 	new_list->tail = NULL;
@@ -23,7 +23,7 @@ list_t *create_list() {
 }
 
 /* Create a new node */
-node_t *create_node(void *data) {
+node_t *list_create_node(void *data) {
     node_t *new_node = (node_t*)malloc(sizeof(node_t));
 	new_node->data = data;
 	new_node->prev = NULL;
@@ -32,37 +32,18 @@ node_t *create_node(void *data) {
 }
 
 /* Return the length of the list */
-int len(list_t *list) {
+int list_len(list_t *list) {
     int length = 0;
     node_t *node;
     for (node = list->head; node != NULL; node = node->next){ length++; }
     return length;
 }
 
-/* Inserts data into the head of list */
-void insert_at_head(void *data, list_t **list) {
-    node_t *new_node = create_node(data);
+/* Add data into the tail of list */
+void list_add(void *data, list_t **list) {
+    node_t *new_node = list_create_node(data);
     if (*list == NULL) {
-    	*list = create_list();
-        (*list)->head = new_node;
-        (*list)->tail = new_node;
-        return;
-    }
-    if ((*list)->head == NULL) {
-        (*list)->head = new_node;
-        (*list)->tail = new_node;
-        return;
-    }
-	(*list)->head->prev = new_node;
-	new_node->next = (*list)->head;
-	(*list)->head = new_node;
-}
-
-/* Inserts data into the tail of list */
-void insert_at_tail(void *data, list_t **list) {
-    node_t *new_node = create_node(data);
-    if (*list == NULL) {
-    	*list = create_list();
+    	*list = list_init();
         (*list)->head = new_node;
         (*list)->tail = new_node;
         return;
@@ -78,7 +59,7 @@ void insert_at_tail(void *data, list_t **list) {
 }
 
 /* Pop the head off the list */
-void *pop(list_t **list) {
+void *list_pop(list_t **list) {
     if (!((*list)->head)) {
         return NULL;
     } else {
@@ -97,12 +78,12 @@ void *pop(list_t **list) {
     }
 }
 
-/* Inserts data before aim */
-bool insert_before(void *aim, void *data, list_t **list) {
+/* Insert data before aim */
+bool list_insert(void *aim, void *data, list_t **list) {
     node_t *node = (*list)->head;
     while (node != NULL) {
         if (node->data == aim) {
-            node_t *new_node = create_node(data);
+            node_t *new_node = list_create_node(data);
             if (node->prev != NULL) {
                 node->prev->next = new_node;
             } else {
@@ -120,7 +101,7 @@ bool insert_before(void *aim, void *data, list_t **list) {
 }
 
 /* Delete node equals to aim */
-void *del(void *aim, list_t **list) {
+void *list_del(void *aim, list_t **list) {
     node_t *node = (*list)->head;
     while (node != NULL) {
         if (node->data == aim) {
@@ -144,11 +125,11 @@ void *del(void *aim, list_t **list) {
 }
 
 /* Replace node equals to aim */
-bool replace(void *aim, void *data, list_t **list) {
+bool list_rplc(void *aim, void *data, list_t **list) {
     node_t *node = (*list)->head;
     while (node != NULL) {
         if (node->data == aim) {
-            node_t *new_node = create_node(data);
+            node_t *new_node = list_create_node(data);
             if (node->prev != NULL) {
                 node->prev->next = new_node;
             } else {
@@ -170,9 +151,9 @@ bool replace(void *aim, void *data, list_t **list) {
 }
 
 /* Print list to file by applying print to each node that is not NULL */
-void print_list(void (*print)(FILE *f, void *data), FILE *f, node_t *root) {
+void list_print(void (*print)(FILE *f, void *data), FILE *f, node_t *root) {
     if (root) {
         print(f, root->data);
-        print_list(print, f, root->next);
+        list_print(print, f, root->next);
     }
 }
