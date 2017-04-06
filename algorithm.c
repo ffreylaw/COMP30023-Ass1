@@ -168,9 +168,9 @@ void round_robin(int event) {
             }
             break;
         case E2:
-            if (((process_t*)queue->head->data) == computer->cpu->running_process) {
-                process_t *process_e2 = list_pop(&queue);
-                list_add(process_e2, &queue);
+            if (queue->head != NULL && ((process_t*)queue->head->data) == computer->cpu->running_process) {
+                process_t *process = list_pop(&queue);
+                list_add(process, &queue);
             }
             computer->cpu->running_time = 0;
             computer->cpu->running_process = NULL;
@@ -179,7 +179,9 @@ void round_robin(int event) {
             }
             break;
         case E3:
-            list_pop(&(computer->cpu->process_queue));
+            if (queue->head != NULL && ((process_t*)queue->head->data) == computer->cpu->running_process) {
+                list_pop(&queue);
+            }
             computer->cpu->num_completed_process += 1;
             computer->cpu->running_time = 0;
             computer->cpu->running_process = NULL;
