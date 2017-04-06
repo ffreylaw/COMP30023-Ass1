@@ -77,7 +77,7 @@ int observe_event() {
         }
         segment_node = segment_node->next;
     }
-    if (empty_flag) {
+    if (empty_flag && computer->disk->process_list->head != NULL) {
         event = E1;
     }
 
